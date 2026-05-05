@@ -219,15 +219,15 @@ async function loadMarkersFromAPI() {
       if (!item.lat || !item.lng) return;
 
      createMarker(
-  item[1], // lat
-  item[2], // lng
-  item[3], // name
-  item[4], // address
-  item[5], // author
-  item[6], // description
-  item[7], // category
-  item[8], // date
-  item[0]  // id
+        item.lat,
+        item.lng,
+        item.name,
+        item.address,
+        item.author,
+        item.description,
+        item.category,
+        item.date,
+        item.id
       );
     });
 
