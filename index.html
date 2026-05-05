@@ -219,8 +219,8 @@ async function loadMarkersFromAPI() {
       if (!item.lat || !item.lng) return;
 
       createMarker(
-        parseFloat(item.lat),
-        parseFloat(item.lng),
+        item.lat,
+        item.lng,
         item.name,
         item.address,
         item.author,
@@ -235,6 +235,7 @@ async function loadMarkersFromAPI() {
     console.error("Erreur API :", err);
   }
 }
+
 
 /* Ajouter un lieu dans Google Sheets */
 async function saveMarkerToAPI(markerData) {
@@ -536,6 +537,17 @@ console.log("VALIDATION OK");
 
 /* -------------------- CRÉATION MARQUEUR -------------------- */
 function createMarker(lat, lng, name, address, author, description, category, date, id = null) {
+
+  // 🔧 FIX : Convertit les virgules en points
+  lat = parseFloat(lat.toString().replace(",", "."));
+  lng = parseFloat(lng.toString().replace(",", "."));
+
+  // 🔧 FIX : Ignore les coordonnées invalides
+  if (isNaN(lat) || isNaN(lng)) {
+    console.error("Coordonnées invalides :", lat, lng);
+    return;
+  }
+
   const emoji = categoryEmojis[category];
 
   const popupHTML = `
@@ -570,9 +582,8 @@ function createMarker(lat, lng, name, address, author, description, category, da
     .addTo(categories[category])
     .bindPopup(popupHTML);
 
-  // 🔧 FIX : ligne réparée
+  // 🔧 FIX : données internes du marker
   marker._data = { lat, lng, name, address, author, description, category, date };
-
   marker._id = id;
 
   marker.on("popupopen", () => {
