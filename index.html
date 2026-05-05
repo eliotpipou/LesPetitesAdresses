@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Carte collaborative – Paris</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    #map { height: 100vh; width: 100vw; }
+
+    body, input, textarea, button {
+      font-family: "Akkurat LL", sans-serif;
+    }
+
+    #overlay-titre {
+      color: #99003d;
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.75);
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 20px;
+      font-weight: 300;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s ease;
+      display: inline-block;
+    }
+    #overlay-titre:hover { opacity: 1; }
+
+    .custom-button {
+      position: absolute;
+      left: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+      height: 34px;
+      font-size: 15px;
+      font-weight: 300;
+      color: #99003d;
+      background: white;
+      opacity: 0.6;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: opacity 0.2s ease;
+    }
+    .custom-button:hover { opacity: 1; }
+
+    #layers-button { top: 110px; }
+    #locate-button { top: 155px; }
+
+    .leaflet-control-layers-toggle { display: none !important; }
+
+    #search-input {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      z-index: 1002;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.85);
+      color: black;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      opacity: 0.75;
+      transition: opacity 0.2s ease;
+      min-width: 260px;
+    }
+    #search-input:hover,
+    #search-input:focus {
+      opacity: 1;
+      outline: none;
+    }
+
+    #search-results {
+      position: absolute;
+      top: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      z-index: 1002;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .result-item {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .result-item:hover { background: #f0f0f0; }
+
+    #category-popup,
+    #details-popup {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 2000;
+      display: none;
+      width: 300px;
+      text-align: center;
+    }
+
+    .category-btn {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #fafafa;
+      font-size: 15px;
+    }
+    .category-btn:hover { background: #eaeaea; }
+
+    #details-popup input,
+    #details-popup textarea,
+    #details-popup button {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: "Akkurat LL", sans-serif;
+    }
+
+    #details-popup input,
+    #details-popup textarea {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    #details-popup button {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #99003d;
+      color: white;
+      font-size: 15px;
+    }
+
+    #details-popup .cancel-btn {
+      background: #ccc;
+      color: black;
+    }
+
+    .emoji-marker {
+      font-size: 28px;
+      line-height: 28px;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      color: #1a73e8;
+      font-size: 12px;
+      cursor: pointer;
+      float: right;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="overlay-titre">Nos Petites Adresses</div>
+
+<div id="layers-button" class="custom-button">🗂️ <span>Catégories</span></div>
+<div id="locate-button" class="custom-button">📍 <span>Me localiser</span></div>
+
+<input id="search-input" type="text" placeholder="Rechercher / Ajouter un lieu">
+<div id="search-results"></div>
+
+<div id="category-popup">
+  <h3>Choisir une catégorie</h3>
+  <div id="category-buttons"></div>
+</div>
+
+<div id="details-popup">
+  <h3>Détails du lieu</h3>
+  <input id="input-name" type="text" placeholder="Votre nom (obligatoire)">
+  <textarea id="input-desc" rows="3" placeholder="Description du lieu (obligatoire)"></textarea>
+  <button id="validate-details">Valider</button>
+  <button class="cancel-btn" id="cancel-details">Annuler</button>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+/* -------------------- API GOOGLE SHEETS -------------------- */
+const API_URL = "/.netlify/functions/sheets";
+
+/* Charger les marqueurs depuis Google Sheets */
+async function loadMarkersFromAPI() {
+  try {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+
+    data.forEach(item => {
+      if (!item.lat || !item.lng) return;
+
+      createMarker(
+        parseFloat(item.lat),
+        parseFloat(item.lng),
+        item.name,
+        item.address,
+        item.author,
+        item.description,
+        item.category,
+        item.date,
+        item.id
+      );
+    });
+
+  } catch (err) {
+    console.error("Erreur API :", err);
+  }
+}
+
+/* Ajouter un lieu dans Google Sheets */
+async function saveMarkerToAPI(markerData) {
+  markerData.action = "add";
+
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(markerData)
+  });
+}
+
+/* Modifier un lieu dans Google Sheets */
+async function updateMarkerToAPI(markerData) {
+  markerData.action = "update";
+
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(markerData)
+  });
+}
+
+/* Modifier un lieu dans Google Sheets */
+async function updateMarkerToAPI(markerData) {
+  markerData.action = "update";
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(markerData)
+  });
+}
+
+/* -------------------- CARTE -------------------- */
+const map = L.map('map').setView([48.8566, 2.3355], 13);
+
+document.getElementById("overlay-titre").onclick = () =>
+  map.flyTo([48.8566, 2.3355], 13, { animate: true, duration: 1.5 });
+
+document.getElementById("locate-button").onclick = () =>
+  map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
+
+map.on('locationfound', e => {
+  L.circleMarker(e.latlng, {
+    radius: 6, fillColor: "#0074D9", color: "#fff",
+    weight: 2, opacity: 1, fillOpacity: 0.9
+  }).addTo(map).bindPopup("Vous êtes ici").openPopup();
+});
+
+map.on('locationerror', () => alert("Impossible de vous localiser"));
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, attribution: '&copy; CARTO'
+}).addTo(map);
+
+/* -------------------- CATÉGORIES -------------------- */
+const categoryEmojis = {
+  resto_pas_cher: "🍔", resto_moderate: "🍗", resto_cher: "🍤",
+  bar_biere: "🍺", bar_vin: "🍷", bar_pinte_pas_cher: "💰",
+  bar_match: "🏉", a_tester: "❓", qg: "🏠", terrain: "🏟️"
+};
+
+const categoryLabels = {
+  resto_pas_cher: "Resto pas cher (0–20€)",
+  resto_moderate: "Resto coût modéré (20–50€)",
+  resto_cher: "Resto coût élevé (50€+)",
+  bar_biere: "Bon bar à bières",
+  bar_vin: "Bon bar à vin",
+  bar_pinte_pas_cher: "Bar < 5€ la pinte",
+  bar_match: "Bar pour les matchs",
+  a_tester: "À tester",
+  qg: "Notre QG",
+  terrain: "Notre terrain"
+};
+
+const categories = {};
+Object.keys(categoryEmojis).forEach(cat => {
+  categories[cat] = L.layerGroup().addTo(map);
+});
+
+const overlays = {};
+Object.keys(categories).forEach(cat => {
+  overlays[`${categoryEmojis[cat]} ${categoryLabels[cat]}`] = categories[cat];
+});
+
+L.control.layers(null, overlays).addTo(map);
+
+setTimeout(() => {
+  const toggle = document.querySelector(".leaflet-control-layers-toggle");
+  if (toggle) toggle.click();
+}, 300);
+
+document.getElementById("layers-button").onclick = () => {
+  const toggle = document.querySelector(".leaflet-control-layers-toggle");
+  if (toggle) toggle.click();
+};
+
+/* -------------------- PHOTON + NOMINATIM -------------------- */
+const input = document.getElementById("search-input");
+const resultsBox = document.getElementById("search-results");
+
+let searchTimeout = null;
+
+input.addEventListener("input", () => {
+  const query = input.value.trim();
+  if (!query) return resultsBox.style.display = "none";
+
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => runSearch(query), 900);
+});
+
+function runSearch(query) {
+  Promise.all([
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`)
+      .then(r => r.json()).catch(() => ({ features: [] })),
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=3`, {
+      headers: { "User-Agent": "NosPetitesAdresses/1.0 (contact@example.com)" }
+    }).then(r => r.json()).catch(() => [])
+  ])
+  .then(([photonData, nominatimData]) => {
+    const photonResults = (photonData.features || []).map(f => ({
+      name: f.properties.name || "Lieu",
+      address: [f.properties.housenumber, f.properties.street, f.properties.city]
+        .filter(Boolean).join(", "),
+      lat: f.geometry.coordinates[1],
+      lng: f.geometry.coordinates[0]
+    }));
+
+    const nominatimResults = nominatimData.map(n => ({
+      name: n.display_name.split(",")[0],
+      address: n.display_name,
+      lat: parseFloat(n.lat),
+      lng: parseFloat(n.lon)
+    }));
+
+    const allResults = [...photonResults, ...nominatimResults];
+
+    if (!allResults.length) return resultsBox.style.display = "none";
+
+    resultsBox.innerHTML = allResults.map(r => `
+      <div class="result-item"
+           data-lat="${r.lat}"
+           data-lng="${r.lng}"
+           data-name="${r.name}"
+           data-address="${r.address}">
+        ${r.name} — ${r.address}
+      </div>
+    `).join("");
+
+    resultsBox.style.display = "block";
+  });
+}
+
+document.addEventListener("click", e => {
+  if (!resultsBox.contains(e.target) && e.target !== input)
+    resultsBox.style.display = "none";
+});
+
+/* -------------------- POPUP 1 -------------------- */
+const popup1 = document.getElementById("category-popup");
+const buttons1 = document.getElementById("category-buttons");
+
+let pendingLat = null, pendingLng = null, pendingName = null, pendingAddress = null;
+let pendingCategory = null;
+let editingMarker = null;
+let editingMode = false;
+
+resultsBox.addEventListener("click", e => {
+  const item = e.target.closest(".result-item");
+  if (!item) return;
+
+  editingMode = false;
+
+  pendingLat = parseFloat(item.dataset.lat);
+  pendingLng = parseFloat(item.dataset.lng);
+  pendingName = item.dataset.name;
+  pendingAddress = item.dataset.address;
+
+  openCategoryPopup();
+});
+
+function openCategoryPopup() {
+  buttons1.innerHTML = Object.keys(categories).map(cat => `
+    <button class="category-btn" data-cat="${cat}">
+      ${categoryEmojis[cat]} ${categoryLabels[cat]}
+    </button>
+  `).join("");
+
+  popup1.style.display = "block";
+}
+
+/* -------------------- POPUP 2 -------------------- */
+const popup2 = document.getElementById("details-popup");
+const inputUser = document.getElementById("input-name");
+const inputDesc = document.getElementById("input-desc");
+
+buttons1.addEventListener("click", evt => {
+  const cat = evt.target.dataset.cat;
+  if (!cat) return;
+
+  pendingCategory = cat;
+
+  popup1.style.display = "none";
+
+  if (editingMode) {
+    inputUser.value = editingMarker._data.author;
+    inputDesc.value = editingMarker._data.description;
+  } else {
+    inputUser.value = "";
+    inputDesc.value = "";
+  }
+
+  popup2.style.display = "block";
+});
+
+document.getElementById("cancel-details").onclick = () => {
+  popup2.style.display = "none";
+  editingMode = false;
+};
+
+document.getElementById("validate-details").onclick = async () => {
+  const user = inputUser.value.trim();
+  const desc = inputDesc.value.trim();
+  if (!user || !desc) return alert("Veuillez remplir votre nom et une description.");
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR", {
+    year: "numeric", month: "long", day: "numeric"
+  });
+
+  if (editingMode) {
+    const updated = {
+      id: editingMarker._id,
+      lat: editingMarker._data.lat,
+      lng: editingMarker._data.lng,
+      name: editingMarker._data.name,
+      address: editingMarker._data.address,
+      author: user,
+      description: desc,
+      category: pendingCategory,
+      date: dateStr
+    };
+
+    editingMarker.remove();
+
+    createMarker(
+      updated.lat,
+      updated.lng,
+      updated.name,
+      updated.address,
+      updated.author,
+      updated.description,
+      updated.category,
+      updated.date,
+      updated.id
+    );
+
+    await updateMarkerToAPI(updated);
+
+    editingMode = false;
+
+  } else {
+    const newId = Date.now();
+
+    const newMarker = {
+      id: newId,
+      lat: pendingLat,
+      lng: pendingLng,
+      name: pendingName,
+      address: pendingAddress,
+      author: user,
+      description: desc,
+      category: pendingCategory,
+      date: dateStr
+    };
+
+    createMarker(
+      newMarker.lat,
+      newMarker.lng,
+      newMarker.name,
+      newMarker.address,
+      newMarker.author,
+      newMarker.description,
+      newMarker.category,
+      newMarker.date,
+      newMarker.id
+    );
+
+    await saveMarkerToAPI(newMarker);
+  }
+
+  popup2.style.display = "none";
+console.log("VALIDATION OK");
+
+  resultsBox.style.display = "none";
+  input.value = "";
+};
+
+/* -------------------- CRÉATION MARQUEUR -------------------- */
+function createMarker(lat, lng, name, address, author, description, category, date, id = null) {
+  const emoji = categoryEmojis[category];
+
+  const popupHTML = `
+    <b>${name}</b><br>
+    ${address}<br><br>
+
+    <b>Ajouté par :</b> ${author}<br>
+    <b>Description :</b><br>${description}<br><br>
+
+    <b>Itinéraire :</b><br>
+    <a href="https://www.google.com/maps?q=${lat},${lng}"
+       target="_blank"
+       style="color:#1a73e8; text-decoration:underline;">
+       Ouvrir dans Google Maps
+    </a><br><br>
+
+    <span style="color: grey; font-size: 12px;">
+      Créé le ${date}
+    </span>
+
+    <div class="edit-btn" onclick="editMarker(this)">Modifier</div>
+  `;
+
+  const icon = L.divIcon({
+    className: "emoji-marker",
+    html: emoji,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+
+  const marker = L.marker([lat, lng], { icon })
+    .addTo(categories[category])
+    .bindPopup(popupHTML);
+
+  // 🔧 FIX : ligne réparée
+  marker._data = { lat, lng, name, address, author, description, category, date };
+
+  marker._id = id;
+
+  marker.on("popupopen", () => {
+    window.currentMarker = marker;
+  });
+
+  return marker;
+}
+
+/* -------------------- MODIFICATION -------------------- */
+window.editMarker = function(btn) {
+  editingMode = true;
+
+  const marker = window.currentMarker;
+  editingMarker = marker;
+
+  pendingLat = marker._data.lat;
+  pendingLng = marker._data.lng;
+  pendingName = marker._data.name;
+  pendingAddress = marker._data.address;
+
+  openCategoryPopup();
+};
+
+/* -------------------- SYNC LARGEURS -------------------- */
+function syncSearchWidth() {
+  const title = document.getElementById("overlay-titre");
+  const search = document.getElementById("search-input");
+  search.style.width = title.offsetWidth + "px";
+}
+
+window.onload = () => {
+  syncSearchWidth();
+  loadMarkersFromAPI();
+};
+
+window.onresize = syncSearchWidth;
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+export async function handler(event, context) {
+  const API_URL = "https://script.google.com/macros/s/AKfycbwYHElqLtpwswgW0D0i7YATUI52yze_svOR8finL-ECum1gdQiVjgDI68-EK_D2MPqJ/exec";
+
+  const response = await fetch(API_URL, {
+    method: event.httpMethod,
+    headers: { "Content-Type": "application/json" },
+    body: event.body
+  });
+
+  const text = await response.text();
+
+  return {
+    statusCode: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Content-Type": "application/json"
+    },
+    body: text
+  };
+}
