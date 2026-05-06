@@ -234,9 +234,39 @@ function checkCode() {
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  font-family: sans-serif;
+  font-family: 'Akkurat LL', sans-serif;
 ">
-  <h2 style="color:#99003d; margin-bottom:20px;">Accès protégé</h2>
+
+<!-- 🔥 ENCARt TITRE + LOGO -->
+<div style="
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.75);
+  padding: 14px 28px;
+  border-radius: 6px;
+  font-size: 22px;
+  font-weight: 300;
+  color: #99003d;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  text-align: center;
+">
+
+  <!-- Ton logo -->
+  <img src="logo PP@2x.png" alt="Logo" style="
+    width: 80px;
+    height: auto;
+    margin-bottom: 10px;
+  ">
+
+  Nos Petites Adresses
+</div>
+
+  <h2 style="color:#99003d; margin-bottom:20px; margin-top:80px;">
+    Accès protégé
+  </h2>
+
   <input id="access-code" type="password" placeholder="Entrez le code" style="
     padding: 10px 14px;
     font-size: 16px;
@@ -246,6 +276,7 @@ function checkCode() {
     width: 200px;
     text-align: center;
   ">
+
   <button onclick="checkCode()" style="
     padding: 10px 16px;
     background:#99003d;
@@ -260,6 +291,7 @@ function checkCode() {
     Code incorrect
   </p>
 </div>
+
 
 <div id="overlay-titre">Nos Petites Adresses</div>
 
