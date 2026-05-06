@@ -7,6 +7,20 @@
   <!-- Indispensable pour le mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<script>
+const PASSWORD = "paris2024"; // ← change ici ton mot de passe
+
+function checkCode() {
+  const input = document.getElementById("access-code").value;
+
+  if (input === PASSWORD) {
+    document.getElementById("lock-screen").style.display = "none";
+  } else {
+    document.getElementById("error-msg").style.display = "block";
+  }
+}
+</script>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
@@ -209,6 +223,43 @@
 </head>
 
 <body>
+
+<div id="lock-screen" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: sans-serif;
+">
+  <h2 style="color:#99003d; margin-bottom:20px;">Accès protégé</h2>
+  <input id="access-code" type="password" placeholder="Entrez le code" style="
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+    width: 200px;
+    text-align: center;
+  ">
+  <button onclick="checkCode()" style="
+    padding: 10px 16px;
+    background:#99003d;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+  ">Valider</button>
+
+  <p id="error-msg" style="color:red; margin-top:10px; display:none;">
+    Code incorrect
+  </p>
+</div>
 
 <div id="overlay-titre">Nos Petites Adresses</div>
 
