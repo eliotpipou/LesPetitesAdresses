@@ -342,18 +342,18 @@ Object.keys(categories).forEach(cat => {
 
 L.control.layers(null, overlays).addTo(map);
 
+/* Empêcher l'ouverture auto sur mobile */
 setTimeout(() => {
   const toggle = document.querySelector(".leaflet-control-layers-toggle");
 
+  // ❌ Ne pas ouvrir automatiquement sur mobile
   if (window.innerWidth <= 768) return;
 
+  // ✔️ Ouvrir automatiquement sur ordinateur
   if (toggle) toggle.click();
 }, 300);
 
-  const toggle = document.querySelector(".leaflet-control-layers-toggle");
-  if (toggle) toggle.click();
-}, 300);
-
+/* Bouton Catégories */
 document.getElementById("layers-button").onclick = () => {
   const toggle = document.querySelector(".leaflet-control-layers-toggle");
   if (toggle) toggle.click();
