@@ -257,7 +257,7 @@ function checkCode() {
 ">
 
   <!-- Logo centré -->
-  <img src="logo-PP@2x.png" alt="Logo" style="
+  <img src="logoPP@2x.png" alt="Logo" style="
     width: 90px;
     height: auto;
     margin-bottom: 10px;
@@ -268,41 +268,40 @@ function checkCode() {
 
 </div>
 
+<h2 style="color:#99003d; margin-bottom:20px; margin-top:140px;">
+  Accès protégé
+</h2>
 
-  <h2 style="color:#99003d; margin-bottom:20px; margin-top:80px;">
-    Accès protégé
-  </h2>
+<input id="access-code" type="password" placeholder="Entrez le code" style="
+  padding: 10px 14px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+  width: 200px;
+  text-align: center;
+">
 
-  <input id="access-code" type="password" placeholder="Entrez le code" style="
 <label style="margin-bottom: 12px; font-size: 14px; color:#99003d;">
   <input type="checkbox" id="remember-toggle" style="margin-right:6px;">
   Se souvenir de moi
 </label>
 
-    padding: 10px 14px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-bottom: 12px;
-    width: 200px;
-    text-align: center;
-  ">
+<button onclick="checkCode()" style="
+  padding: 10px 16px;
+  background:#99003d;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+">Valider</button>
 
-  <button onclick="checkCode()" style="
-    padding: 10px 16px;
-    background:#99003d;
-    color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:16px;
-  ">Valider</button>
+<p id="error-msg" style="color:red; margin-top:10px; display:none;">
+  Code incorrect
+</p>
 
-  <p id="error-msg" style="color:red; margin-top:10px; display:none;">
-    Code incorrect
-  </p>
-</div>
-
+</div> <!-- 🔥 FERMETURE MANQUANTE DE #lock-screen -->
 
 <div id="overlay-titre">Nos Petites Adresses</div>
 
