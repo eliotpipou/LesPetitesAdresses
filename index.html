@@ -237,37 +237,48 @@ function checkCode() {
   font-family: 'Akkurat LL', sans-serif;
 ">
 
-<!-- 🔥 ENCARt TITRE + LOGO -->
+<!-- 🔥 ENCARt LOGO + TITRE CENTRÉS -->
 <div style="
   position: absolute;
   top: 40px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255,255,255,0.75);
-  padding: 14px 28px;
+  padding: 18px 28px;
   border-radius: 6px;
   font-size: 22px;
   font-weight: 300;
   color: #99003d;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 ">
 
-  <!-- Ton logo -->
-  <img src="logo PP@2x.png" alt="Logo" style="
-    width: 80px;
+  <!-- Logo centré -->
+  <img src="logo-PP@2x.png" alt="Logo" style="
+    width: 90px;
     height: auto;
     margin-bottom: 10px;
   ">
 
-  Nos Petites Adresses
+  <!-- Titre centré -->
+  <span>Nos Petites Adresses</span>
+
 </div>
+
 
   <h2 style="color:#99003d; margin-bottom:20px; margin-top:80px;">
     Accès protégé
   </h2>
 
   <input id="access-code" type="password" placeholder="Entrez le code" style="
+<label style="margin-bottom: 12px; font-size: 14px; color:#99003d;">
+  <input type="checkbox" id="remember-toggle" style="margin-right:6px;">
+  Se souvenir de moi
+</label>
+
     padding: 10px 14px;
     font-size: 16px;
     border-radius: 6px;
