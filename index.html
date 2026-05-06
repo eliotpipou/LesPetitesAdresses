@@ -4,22 +4,19 @@
   <meta charset="utf-8" />
   <title>Carte collaborative – Paris</title>
 
-  <!-- Indispensable pour mobile -->
+  <!-- Indispensable pour le mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: "Akkurat LL", sans-serif;
-    }
-
     #map { height: 100vh; width: 100vw; }
 
-    /* -------------------- TITRE -------------------- */
+    body, input, textarea, button {
+      font-family: "Akkurat LL", sans-serif;
+      margin: 0;
+    }
+
     #overlay-titre {
       color: #99003d;
       position: absolute;
@@ -31,15 +28,15 @@
       border-radius: 6px;
       font-size: 20px;
       font-weight: 300;
-      z-index: 3000;
+      z-index: 1000;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       cursor: pointer;
       opacity: 0.6;
       transition: opacity 0.2s ease;
+      display: inline-block;
     }
     #overlay-titre:hover { opacity: 1; }
 
-    /* -------------------- BOUTONS -------------------- */
     .custom-button {
       position: absolute;
       left: 18px;
@@ -55,7 +52,7 @@
       opacity: 0.6;
       border-radius: 6px;
       cursor: pointer;
-      z-index: 3000;
+      z-index: 1001;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       transition: opacity 0.2s ease;
     }
@@ -66,7 +63,6 @@
 
     .leaflet-control-layers-toggle { display: none !important; }
 
-    /* -------------------- BARRE DE RECHERCHE -------------------- */
     #search-input {
       position: absolute;
       top: 70px;
@@ -75,7 +71,7 @@
       padding: 8px 12px;
       border-radius: 6px;
       border: none;
-      z-index: 3000;
+      z-index: 1002;
       font-size: 16px;
       background: rgba(255, 255, 255, 0.85);
       color: black;
@@ -98,7 +94,7 @@
       background: white;
       border-radius: 6px;
       border: 1px solid #ccc;
-      z-index: 3000;
+      z-index: 1002;
       display: none;
       max-height: 200px;
       overflow-y: auto;
@@ -111,7 +107,6 @@
     }
     .result-item:hover { background: #f0f0f0; }
 
-    /* -------------------- POPUPS CUSTOM -------------------- */
     #category-popup,
     #details-popup {
       position: fixed;
@@ -121,7 +116,7 @@
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 4000;
+      z-index: 2000;
       display: none;
       width: 300px;
       text-align: center;
@@ -186,52 +181,25 @@
       margin-top: 5px;
     }
 
-    /* -------------------- POPUP LEAFLET AU-DESSUS DE TOUT -------------------- */
-    .leaflet-popup,
-    .leaflet-popup-pane {
-      z-index: 5000 !important;
-    }
-
-    /* -------------------- STYLE LISTE CATÉGORIES -------------------- */
-    .leaflet-control-layers-expanded,
-    .leaflet-control-layers-selector + span {
-      font-family: "Akkurat LL", sans-serif !important;
-      color: #99003d !important;
-    }
-
-    /* -------------------- MOBILE -------------------- */
+    /* Responsive simple */
     @media (max-width: 768px) {
-
-      /* Déplacer la liste des catégories en bas à droite */
-      .leaflet-control-layers {
-        position: absolute !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        left: auto !important;
-        top: auto !important;
-        z-index: 3500 !important;
-      }
-
-      .leaflet-control-layers-expanded {
-        width: 220px !important;
-        font-size: 15px !important;
-      }
-
       #overlay-titre {
         font-size: 18px;
         padding: 6px 16px;
       }
-
+      .custom-button {
+        height: 38px;
+        font-size: 15px;
+        padding: 0 12px;
+      }
       #search-input {
         width: 85%;
         min-width: unset;
       }
-
       #search-results {
         width: 85%;
         min-width: unset;
       }
-
       .leaflet-popup-content {
         font-size: 14px;
         max-width: 220px !important;
@@ -268,7 +236,6 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-
 /* -------------------- API GOOGLE SHEETS -------------------- */
 const API_URL = "/.netlify/functions/sheets";
 
@@ -332,20 +299,15 @@ document.getElementById("locate-button").onclick = () =>
 
 map.on('locationfound', e => {
   L.circleMarker(e.latlng, {
-    radius: 6,
-    fillColor: "#0074D9",
-    color: "#fff",
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.9
+    radius: 6, fillColor: "#0074D9", color: "#fff",
+    weight: 2, opacity: 1, fillOpacity: 0.9
   }).addTo(map).bindPopup("Vous êtes ici").openPopup();
 });
 
 map.on('locationerror', () => alert("Impossible de vous localiser"));
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19,
-  attribution: '&copy; CARTO'
+  maxZoom: 19, attribution: '&copy; CARTO'
 }).addTo(map);
 
 /* -------------------- CATÉGORIES -------------------- */
@@ -380,13 +342,9 @@ Object.keys(categories).forEach(cat => {
 
 L.control.layers(null, overlays).addTo(map);
 
-/* Empêcher l'ouverture auto sur mobile */
 setTimeout(() => {
   const toggle = document.querySelector(".leaflet-control-layers-toggle");
-
-  if (window.innerWidth <= 768) return; // mobile → ne pas ouvrir
-
-  if (toggle) toggle.click(); // desktop → ouvrir
+  if (toggle) toggle.click();
 }, 300);
 
 document.getElementById("layers-button").onclick = () => {
@@ -558,6 +516,7 @@ document.getElementById("validate-details").onclick = async () => {
     await updateMarkerToAPI(updated);
 
     editingMode = false;
+
   } else {
     const newId = Date.now();
 
@@ -589,6 +548,8 @@ document.getElementById("validate-details").onclick = async () => {
   }
 
   popup2.style.display = "none";
+  console.log("VALIDATION OK");
+
   resultsBox.style.display = "none";
   input.value = "";
 };
@@ -596,9 +557,11 @@ document.getElementById("validate-details").onclick = async () => {
 /* -------------------- CRÉATION MARQUEUR -------------------- */
 function createMarker(lat, lng, name, address, author, description, category, date, id = null) {
 
+  // Convertit les virgules en points
   lat = parseFloat(lat.toString().replace(",", "."));
   lng = parseFloat(lng.toString().replace(",", "."));
 
+  // Ignore les coordonnées invalides
   if (isNaN(lat) || isNaN(lng)) {
     console.error("Coordonnées invalides :", lat, lng);
     return;
@@ -635,4 +598,50 @@ function createMarker(lat, lng, name, address, author, description, category, da
   });
 
   const marker = L.marker([lat, lng], { icon })
+    .addTo(categories[category])
+    .bindPopup(popupHTML);
 
+  marker._data = { lat, lng, name, address, author, description, category, date };
+  marker._id = id;
+
+  marker.on("popupopen", () => {
+    window.currentMarker = marker;
+  });
+
+  return marker;
+}
+
+/* -------------------- MODIFICATION -------------------- */
+window.editMarker = function(btn) {
+  editingMode = true;
+
+  const marker = window.currentMarker;
+  editingMarker = marker;
+
+  pendingLat = marker._data.lat;
+  pendingLng = marker._data.lng;
+  pendingName = marker._data.name;
+  pendingAddress = marker._data.address;
+
+  openCategoryPopup();
+};
+
+/* -------------------- SYNC LARGEURS -------------------- */
+function syncSearchWidth() {
+  const title = document.getElementById("overlay-titre");
+  const search = document.getElementById("search-input");
+  if (title && search) {
+    search.style.width = title.offsetWidth + "px";
+  }
+}
+
+window.onload = () => {
+  syncSearchWidth();
+  loadMarkersFromAPI();
+};
+
+window.onresize = syncSearchWidth;
+</script>
+
+</body>
+</html>
