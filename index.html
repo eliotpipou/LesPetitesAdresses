@@ -4,30 +4,18 @@
   <meta charset="utf-8" />
   <title>Carte collaborative – Paris</title>
 
-  <!-- 🔥 Indispensable pour le mobile -->
+  <!-- Indispensable pour le mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
-    /* -------------------- BASE -------------------- */
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    #map {
-      height: 100vh;
-      width: 100vw;
-    }
+    #map { height: 100vh; width: 100vw; }
 
     body, input, textarea, button {
       font-family: "Akkurat LL", sans-serif;
+      margin: 0;
     }
-
-    /* -------------------- TITRE -------------------- */
 
     #overlay-titre {
       color: #99003d;
@@ -48,8 +36,6 @@
       display: inline-block;
     }
     #overlay-titre:hover { opacity: 1; }
-
-    /* -------------------- BOUTONS -------------------- */
 
     .custom-button {
       position: absolute;
@@ -76,8 +62,6 @@
     #locate-button { top: 155px; }
 
     .leaflet-control-layers-toggle { display: none !important; }
-
-    /* -------------------- BARRE DE RECHERCHE -------------------- */
 
     #search-input {
       position: absolute;
@@ -114,7 +98,7 @@
       display: none;
       max-height: 200px;
       overflow-y: auto;
-      width: 260px;
+      min-width: 260px;
     }
 
     .result-item {
@@ -122,8 +106,6 @@
       cursor: pointer;
     }
     .result-item:hover { background: #f0f0f0; }
-
-    /* -------------------- POPUPS -------------------- */
 
     #category-popup,
     #details-popup {
@@ -199,54 +181,30 @@
       margin-top: 5px;
     }
 
-    /* -------------------- RESPONSIVE MOBILE -------------------- */
-
+    /* Responsive simple */
     @media (max-width: 768px) {
-
       #overlay-titre {
         font-size: 18px;
         padding: 6px 16px;
       }
-
       .custom-button {
         height: 38px;
         font-size: 15px;
         padding: 0 12px;
       }
-
       #search-input {
         width: 85%;
         min-width: unset;
-        font-size: 16px;
-        padding: 12px;
       }
-
       #search-results {
         width: 85%;
+        min-width: unset;
       }
-
       .leaflet-popup-content {
         font-size: 14px;
         max-width: 220px !important;
-        line-height: 1.4;
-      }
-
-      .emoji-marker {
-        font-size: 24px;
-      }
-
-      .edit-btn {
-        font-size: 13px;
       }
     }
-
-    /* iPhone safe area */
-    @supports (-webkit-touch-callout: none) {
-      #map {
-        height: calc(100vh - env(safe-area-inset-bottom));
-      }
-    }
-
   </style>
 </head>
 
@@ -278,7 +236,6 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-
 /* -------------------- API GOOGLE SHEETS -------------------- */
 const API_URL = "/.netlify/functions/sheets";
 
@@ -342,20 +299,15 @@ document.getElementById("locate-button").onclick = () =>
 
 map.on('locationfound', e => {
   L.circleMarker(e.latlng, {
-    radius: 6,
-    fillColor: "#0074D9",
-    color: "#fff",
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.9
+    radius: 6, fillColor: "#0074D9", color: "#fff",
+    weight: 2, opacity: 1, fillOpacity: 0.9
   }).addTo(map).bindPopup("Vous êtes ici").openPopup();
 });
 
 map.on('locationerror', () => alert("Impossible de vous localiser"));
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19,
-  attribution: '&copy; CARTO'
+  maxZoom: 19, attribution: '&copy; CARTO'
 }).addTo(map);
 
 /* -------------------- CATÉGORIES -------------------- */
@@ -559,3 +511,137 @@ document.getElementById("validate-details").onclick = async () => {
       updated.category,
       updated.date,
       updated.id
+    );
+
+    await updateMarkerToAPI(updated);
+
+    editingMode = false;
+
+  } else {
+    const newId = Date.now();
+
+    const newMarker = {
+      id: newId,
+      lat: pendingLat,
+      lng: pendingLng,
+      name: pendingName,
+      address: pendingAddress,
+      author: user,
+      description: desc,
+      category: pendingCategory,
+      date: dateStr
+    };
+
+    createMarker(
+      newMarker.lat,
+      newMarker.lng,
+      newMarker.name,
+      newMarker.address,
+      newMarker.author,
+      newMarker.description,
+      newMarker.category,
+      newMarker.date,
+      newMarker.id
+    );
+
+    await saveMarkerToAPI(newMarker);
+  }
+
+  popup2.style.display = "none";
+  console.log("VALIDATION OK");
+
+  resultsBox.style.display = "none";
+  input.value = "";
+};
+
+/* -------------------- CRÉATION MARQUEUR -------------------- */
+function createMarker(lat, lng, name, address, author, description, category, date, id = null) {
+
+  // Convertit les virgules en points
+  lat = parseFloat(lat.toString().replace(",", "."));
+  lng = parseFloat(lng.toString().replace(",", "."));
+
+  // Ignore les coordonnées invalides
+  if (isNaN(lat) || isNaN(lng)) {
+    console.error("Coordonnées invalides :", lat, lng);
+    return;
+  }
+
+  const emoji = categoryEmojis[category];
+
+  const popupHTML = `
+    <b>${name}</b><br>
+    ${address}<br><br>
+
+    <b>Ajouté par :</b> ${author}<br>
+    <b>Description :</b><br>${description}<br><br>
+
+    <b>Itinéraire :</b><br>
+    <a href="https://www.google.com/maps?q=${lat},${lng}"
+       target="_blank"
+       style="color:#1a73e8; text-decoration:underline;">
+       Ouvrir dans Google Maps
+    </a><br><br>
+
+    <span style="color: grey; font-size: 12px;">
+      Créé le ${date}
+    </span>
+
+    <div class="edit-btn" onclick="editMarker(this)">Modifier</div>
+  `;
+
+  const icon = L.divIcon({
+    className: "emoji-marker",
+    html: emoji,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+
+  const marker = L.marker([lat, lng], { icon })
+    .addTo(categories[category])
+    .bindPopup(popupHTML);
+
+  marker._data = { lat, lng, name, address, author, description, category, date };
+  marker._id = id;
+
+  marker.on("popupopen", () => {
+    window.currentMarker = marker;
+  });
+
+  return marker;
+}
+
+/* -------------------- MODIFICATION -------------------- */
+window.editMarker = function(btn) {
+  editingMode = true;
+
+  const marker = window.currentMarker;
+  editingMarker = marker;
+
+  pendingLat = marker._data.lat;
+  pendingLng = marker._data.lng;
+  pendingName = marker._data.name;
+  pendingAddress = marker._data.address;
+
+  openCategoryPopup();
+};
+
+/* -------------------- SYNC LARGEURS -------------------- */
+function syncSearchWidth() {
+  const title = document.getElementById("overlay-titre");
+  const search = document.getElementById("search-input");
+  if (title && search) {
+    search.style.width = title.offsetWidth + "px";
+  }
+}
+
+window.onload = () => {
+  syncSearchWidth();
+  loadMarkersFromAPI();
+};
+
+window.onresize = syncSearchWidth;
+</script>
+
+</body>
+</html>
