@@ -44,10 +44,13 @@ document.getElementById("photo-input").onchange = async (event) => {
   formData.append("photo", file);
 
   // Envoi vers ton Apps Script
-  const response = await fetch("https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec", {
-    method: "POST",
-    body: formData
-  });
+  const response = await fetch(
+    "https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
 
   const data = await response.json();
   uploadedPhotoURL = data.url; // URL Google Drive
