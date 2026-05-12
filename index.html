@@ -19,6 +19,41 @@ function checkCode() {
     document.getElementById("error-msg").style.display = "block";
   }
 }
+
+/* --- Upload photo vers Google Drive --- */
+
+let uploadedPhotoURL = ""; // URL renvoyée par ton Apps Script
+
+// Ouvrir la galerie
+document.getElementById("add-photo-btn").onclick = () => {
+  document.getElementById("photo-input").click();
+};
+
+// Quand l'utilisateur choisit une photo
+document.getElementById("photo-input").onchange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Aperçu immédiat
+  const preview = document.getElementById("photo-preview");
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+
+  // Préparation pour l'envoi
+  const formData = new FormData();
+  formData.append("photo", file);
+
+  // Envoi vers ton Apps Script
+  const response = await fetch("TON_URL_APPS_SCRIPT", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json();
+  uploadedPhotoURL = data.url; // URL Google Drive
+};
+
+
 </script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -318,11 +353,37 @@ function checkCode() {
 
 <div id="details-popup">
   <h3>Détails du lieu</h3>
+
   <input id="input-name" type="text" placeholder="Votre nom (obligatoire)">
   <textarea id="input-desc" rows="3" placeholder="Description du lieu (obligatoire)"></textarea>
+
+  <!-- Bouton pour choisir une photo -->
+  <button id="add-photo-btn" style="
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    cursor: pointer;
+  ">
+    Ajouter une photo (facultatif)
+  </button>
+
+  <!-- Input caché -->
+  <input type="file" id="photo-input" accept="image/*" style="display:none">
+
+  <!-- Aperçu -->
+  <img id="photo-preview" style="
+    display:none;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 6px;
+  ">
+
   <button id="validate-details">Valider</button>
   <button class="cancel-btn" id="cancel-details">Annuler</button>
 </div>
+
 
 <div id="map"></div>
 
@@ -361,6 +422,7 @@ async function loadMarkersFromAPI() {
 
 /* Ajouter un lieu dans Google Sheets */
 async function saveMarkerToAPI(markerData) {
+  markerData.photo = uploadedPhotoURL;   // ← AJOUT ICI
   markerData.action = "add";
 
   await fetch(API_URL, {
@@ -370,8 +432,10 @@ async function saveMarkerToAPI(markerData) {
   });
 }
 
+
 /* Modifier un lieu dans Google Sheets */
 async function updateMarkerToAPI(markerData) {
+  markerData.photo = uploadedPhotoURL;   // ← AJOUT ICI
   markerData.action = "update";
 
   await fetch(API_URL, {
