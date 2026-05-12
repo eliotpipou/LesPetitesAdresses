@@ -20,41 +20,45 @@ function checkCode() {
   }
 }
 
-/* --- Upload photo vers Google Drive --- */
+document.addEventListener("DOMContentLoaded", () => {
 
-let uploadedPhotoURL = ""; // URL renvoyée par ton Apps Script
+  /* --- Upload photo vers Google Drive --- */
 
-// Ouvrir la galerie
-document.getElementById("add-photo-btn").onclick = () => {
-  document.getElementById("photo-input").click();
-};
+  let uploadedPhotoURL = ""; // URL renvoyée par ton Apps Script
 
-// Quand l'utilisateur choisit une photo
-document.getElementById("photo-input").onchange = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  // Ouvrir la galerie
+  document.getElementById("add-photo-btn").onclick = () => {
+    document.getElementById("photo-input").click();
+  };
 
-  // Aperçu immédiat
-  const preview = document.getElementById("photo-preview");
-  preview.src = URL.createObjectURL(file);
-  preview.style.display = "block";
+  // Quand l'utilisateur choisit une photo
+  document.getElementById("photo-input").onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  // Préparation pour l'envoi
-  const formData = new FormData();
-  formData.append("photo", file);
+    // Aperçu immédiat
+    const preview = document.getElementById("photo-preview");
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
 
-  // Envoi vers ton Apps Script
-  const response = await fetch(
-    "https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec",
-    {
-      method: "POST",
-      body: formData
-    }
-  );
+    // Préparation pour l'envoi
+    const formData = new FormData();
+    formData.append("photo", file);
 
-  const data = await response.json();
-  uploadedPhotoURL = data.url; // URL Google Drive
-};
+    // Envoi vers ton Apps Script
+    const response = await fetch(
+      "https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec",
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const data = await response.json();
+    uploadedPhotoURL = data.url; // URL Google Drive
+  };
+
+});
 
 
 </script>
