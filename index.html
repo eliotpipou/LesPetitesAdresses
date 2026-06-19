@@ -369,6 +369,40 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 });
 
+// Ajouter une croix pour supprimer la photo
+const preview = document.getElementById("photo-preview");
+
+preview.insertAdjacentHTML("afterend", `
+  <span id="remove-photo-btn" style="
+    position:absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color:white;
+    padding:4px 8px;
+    border-radius:50%;
+    cursor:pointer;
+    display:none;
+    font-size:14px;
+  ">✕</span>
+`);
+
+const removeBtn = document.getElementById("remove-photo-btn");
+
+// Afficher la croix quand une photo est ajoutée
+document.getElementById("photo-input").addEventListener("change", () => {
+  removeBtn.style.display = "block";
+});
+
+// Supprimer la photo
+removeBtn.onclick = () => {
+  uploadedPhotoURL = "";
+  preview.src = "";
+  preview.style.display = "none";
+  removeBtn.style.display = "none";
+  document.getElementById("photo-input").value = "";
+};
+
 /* -------------------- API GOOGLE SHEETS -------------------- */
 const API_URL = "/.netlify/functions/sheets";
 
@@ -694,39 +728,39 @@ function createMarker(lat, lng, name, address, author, description, category, da
   const emoji = categoryEmojis[category];
 
   let photoHTML = "";
-  if (photo) {
-    photoHTML = `
-      <br>
-      <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
-      <br>
-    `;
-  }
-
-  const popupHTML = `
-    <b>${name}</b><br>
-    ${address}<br><br>
-
-    <b>Ajouté par :</b> ${author}<br>
-    <b>Description :</b><br>${description}<br><br>
-
-    ${photoHTML}
-
-    <b>Itinéraire :</b><br>
-    <a href="https://www.google.com/maps?q=${lat},${lng}"
-       target="_blank"
-       style="color:#1a73e8; text-decoration:underline;">
-       Ouvrir dans Google Maps
-    </a><br><br>
-
-    <span style="color: grey; font-size: 12px;">
-      Créé le ${date}
-    </span>
-
-    <br><br>
-    <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
-      Modifier
-    </span>
+if (photo && photo !== "") {
+  photoHTML = `
+    <br>
+    <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
+    <br>
   `;
+}
+
+const popupHTML = `
+  <b>${name}</b><br>
+  ${address}<br><br>
+
+  <b>Ajouté par :</b> ${author}<br>
+  <b>Description :</b><br>${description}<br><br>
+
+  ${photoHTML}
+
+  <b>Itinéraire :</b><br>
+  <a href="https://www.google.com/maps?q=${lat},${lng}"
+     target="_blank"
+     style="color:#1a73e8; text-decoration:underline;">
+     Ouvrir dans Google Maps
+  </a><br><br>
+
+  <span style="color: grey; font-size: 12px;">
+    Créé le ${date}
+  </span>
+
+  <br><br>
+  <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
+    Modifier
+  </span>
+`;
 
   const marker = L.marker([lat, lng], {
     icon: L.divIcon({
