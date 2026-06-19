@@ -4,68 +4,12 @@
   <meta charset="utf-8" />
   <title>Carte collaborative – Paris</title>
 
-  <!-- Indispensable pour le mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script>
-const PASSWORD = "paris2024"; // ← change ici ton mot de passe
-
-function checkCode() {
-  const input = document.getElementById("access-code").value;
-
-  if (input === PASSWORD) {
-    document.getElementById("lock-screen").style.display = "none";
-  } else {
-    document.getElementById("error-msg").style.display = "block";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  /* --- Upload photo vers Google Drive --- */
-
-  let uploadedPhotoURL = ""; // URL renvoyée par ton Apps Script
-
-  // Ouvrir la galerie
-  document.getElementById("add-photo-btn").onclick = () => {
-    document.getElementById("photo-input").click();
-  };
-
-  // Quand l'utilisateur choisit une photo
-  document.getElementById("photo-input").onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Aperçu immédiat
-    const preview = document.getElementById("photo-preview");
-    preview.src = URL.createObjectURL(file);
-    preview.style.display = "block";
-
-    // Préparation pour l'envoi
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    // Envoi vers ton Apps Script
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec",
-      {
-        method: "POST",
-        body: formData
-      }
-    );
-
-    const data = await response.json();
-    uploadedPhotoURL = data.url; // URL Google Drive
-  };
-
-});
-
-
-</script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
+    /* --- STYLES GÉNÉRAUX --- */
     #map { height: 100vh; width: 100vw; }
 
     body, input, textarea, button {
@@ -73,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       margin: 0;
     }
 
+    /* --- TITRE --- */
     #overlay-titre {
       color: #99003d;
       position: absolute;
@@ -93,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     #overlay-titre:hover { opacity: 1; }
 
+    /* --- BOUTONS FLOTTANTS --- */
     .custom-button {
       position: absolute;
       left: 18px;
@@ -117,8 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     #layers-button { top: 110px; }
     #locate-button { top: 155px; }
 
-    .leaflet-control-layers-toggle { display: none !important; }
-
+    /* --- RECHERCHE --- */
     #search-input {
       position: absolute;
       top: 70px;
@@ -163,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     .result-item:hover { background: #f0f0f0; }
 
+    /* --- POPUPS --- */
     #category-popup,
     #details-popup {
       position: fixed;
@@ -229,15 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cursor: pointer;
     }
 
-    .edit-btn {
-      color: #1a73e8;
-      font-size: 12px;
-      cursor: pointer;
-      float: right;
-      margin-top: 5px;
-    }
-
-    /* Responsive simple */
+    /* --- RESPONSIVE --- */
     @media (max-width: 768px) {
       #overlay-titre {
         font-size: 18px;
@@ -266,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <body>
 
+<!-- -------------------- ÉCRAN DE VERROUILLAGE -------------------- -->
 <div id="lock-screen" style="
   position: fixed;
   top: 0; left: 0;
@@ -276,10 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  font-family: 'Akkurat LL', sans-serif;
 ">
 
-<!-- 🔥 ENCARt LOGO + TITRE CENTRÉS -->
 <div style="
   position: absolute;
   top: 40px;
@@ -298,14 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
   align-items: center;
 ">
 
-  <!-- Logo centré -->
-  <img src="logoPP@2x.png" alt="Logo" style="
-    width: 90px;
-    height: auto;
-    margin-bottom: 10px;
-  ">
-
-  <!-- Titre centré -->
+  <img src="logoPP@2x.png" alt="Logo" style="width: 90px; margin-bottom: 10px;">
   <span>Nos Petites Adresses</span>
 
 </div>
@@ -343,8 +273,9 @@ document.addEventListener("DOMContentLoaded", () => {
   Code incorrect
 </p>
 
-</div> <!-- 🔥 FERMETURE MANQUANTE DE #lock-screen -->
+</div>
 
+<!-- -------------------- UI PRINCIPALE -------------------- -->
 <div id="overlay-titre">Nos Petites Adresses</div>
 
 <div id="layers-button" class="custom-button">🗂️ <span>Catégories</span></div>
@@ -353,18 +284,19 @@ document.addEventListener("DOMContentLoaded", () => {
 <input id="search-input" type="text" placeholder="Rechercher / Ajouter un lieu">
 <div id="search-results"></div>
 
+<!-- POPUP CATÉGORIE -->
 <div id="category-popup">
   <h3>Choisir une catégorie</h3>
   <div id="category-buttons"></div>
 </div>
 
+<!-- POPUP DÉTAILS -->
 <div id="details-popup">
   <h3>Détails du lieu</h3>
 
   <input id="input-name" type="text" placeholder="Votre nom (obligatoire)">
   <textarea id="input-desc" rows="3" placeholder="Description du lieu (obligatoire)"></textarea>
 
-  <!-- Bouton pour choisir une photo -->
   <button id="add-photo-btn" style="
     margin-top: 10px;
     padding: 10px;
@@ -372,15 +304,13 @@ document.addEventListener("DOMContentLoaded", () => {
     border: 1px solid #ccc;
     background: #fafafa;
     cursor: pointer;
-    Color: #000
+    color: #000;
   ">
     Ajouter une photo (facultatif)
   </button>
 
-  <!-- Input caché -->
   <input type="file" id="photo-input" accept="image/*" style="display:none">
 
-  <!-- Aperçu -->
   <img id="photo-preview" style="
     display:none;
     width: 100%;
@@ -392,16 +322,57 @@ document.addEventListener("DOMContentLoaded", () => {
   <button class="cancel-btn" id="cancel-details">Annuler</button>
 </div>
 
-
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+<!-- -------------------- SCRIPT COMPLET -------------------- -->
 <script>
+/* -------------------- MOT DE PASSE -------------------- */
+const PASSWORD = "paris2024";
+
+function checkCode() {
+  const input = document.getElementById("access-code").value;
+  if (input === PASSWORD) {
+    document.getElementById("lock-screen").style.display = "none";
+  } else {
+    document.getElementById("error-msg").style.display = "block";
+  }
+}
+
+/* -------------------- UPLOAD PHOTO → GOOGLE DRIVE -------------------- */
+let uploadedPhotoURL = "";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("add-photo-btn").onclick = () => {
+    document.getElementById("photo-input").click();
+  };
+
+  document.getElementById("photo-input").onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const preview = document.getElementById("photo-preview");
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const response = await fetch(
+      "https://script.google.com/macros/s/AKfycbxZA5G_0fdtxKW-cmjA1gj01HA3JA11MHeXj2xOVYhSyYkKeccw2olVTXbcjW00KDt2/exec",
+      { method: "POST", body: formData }
+    );
+
+    const data = await response.json();
+    uploadedPhotoURL = data.url;
+  };
+});
+
 /* -------------------- API GOOGLE SHEETS -------------------- */
 const API_URL = "/.netlify/functions/sheets";
 
-/* Charger les marqueurs depuis Google Sheets */
 async function loadMarkersFromAPI() {
   try {
     const response = await fetch(API_URL);
@@ -419,7 +390,8 @@ async function loadMarkersFromAPI() {
         item.description,
         item.category,
         item.date,
-        item.id
+        item.id,
+        item.photo
       );
     });
 
@@ -428,9 +400,8 @@ async function loadMarkersFromAPI() {
   }
 }
 
-/* Ajouter un lieu dans Google Sheets */
 async function saveMarkerToAPI(markerData) {
-  markerData.photo = uploadedPhotoURL;   // ← AJOUT ICI
+  markerData.photo = uploadedPhotoURL;
   markerData.action = "add";
 
   await fetch(API_URL, {
@@ -440,10 +411,8 @@ async function saveMarkerToAPI(markerData) {
   });
 }
 
-
-/* Modifier un lieu dans Google Sheets */
 async function updateMarkerToAPI(markerData) {
-  markerData.photo = uploadedPhotoURL;   // ← AJOUT ICI
+  markerData.photo = uploadedPhotoURL;
   markerData.action = "update";
 
   await fetch(API_URL, {
@@ -507,24 +476,7 @@ Object.keys(categories).forEach(cat => {
 
 L.control.layers(null, overlays).addTo(map);
 
-/* Empêcher l'ouverture auto sur mobile */
-setTimeout(() => {
-  const toggle = document.querySelector(".leaflet-control-layers-toggle");
-
-  // ❌ Ne pas ouvrir automatiquement sur mobile
-  if (window.innerWidth <= 768) return;
-
-  // ✔️ Ouvrir automatiquement sur ordinateur
-  if (toggle) toggle.click();
-}, 300);
-
-/* Bouton Catégories */
-document.getElementById("layers-button").onclick = () => {
-  const toggle = document.querySelector(".leaflet-control-layers-toggle");
-  if (toggle) toggle.click();
-};
-
-/* -------------------- PHOTON + NOMINATIM -------------------- */
+/* -------------------- RECHERCHE -------------------- */
 const input = document.getElementById("search-input");
 const resultsBox = document.getElementById("search-results");
 
@@ -544,7 +496,7 @@ function runSearch(query) {
       .then(r => r.json()).catch(() => ({ features: [] })),
 
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=3`, {
-      headers: { "User-Agent": "NosPetitesAdresses/1.0 (contact@example.com)" }
+      headers: { "User-Agent": "NosPetitesAdresses/1.0" }
     }).then(r => r.json()).catch(() => [])
   ])
   .then(([photonData, nominatimData]) => {
@@ -581,239 +533,4 @@ function runSearch(query) {
   });
 }
 
-document.addEventListener("click", e => {
-  if (!resultsBox.contains(e.target) && e.target !== input)
-    resultsBox.style.display = "none";
-});
-
-/* -------------------- POPUP 1 -------------------- */
-const popup1 = document.getElementById("category-popup");
-const buttons1 = document.getElementById("category-buttons");
-
-let pendingLat = null, pendingLng = null, pendingName = null, pendingAddress = null;
-let pendingCategory = null;
-let editingMarker = null;
-let editingMode = false;
-
-resultsBox.addEventListener("click", e => {
-  const item = e.target.closest(".result-item");
-  if (!item) return;
-
-  editingMode = false;
-
-  pendingLat = parseFloat(item.dataset.lat);
-  pendingLng = parseFloat(item.dataset.lng);
-  pendingName = item.dataset.name;
-  pendingAddress = item.dataset.address;
-
-  openCategoryPopup();
-});
-
-function openCategoryPopup() {
-  buttons1.innerHTML = Object.keys(categories).map(cat => `
-    <button class="category-btn" data-cat="${cat}">
-      ${categoryEmojis[cat]} ${categoryLabels[cat]}
-    </button>
-  `).join("");
-
-  popup1.style.display = "block";
-}
-
-/* -------------------- POPUP 2 -------------------- */
-const popup2 = document.getElementById("details-popup");
-const inputUser = document.getElementById("input-name");
-const inputDesc = document.getElementById("input-desc");
-
-buttons1.addEventListener("click", evt => {
-  const cat = evt.target.dataset.cat;
-  if (!cat) return;
-
-  pendingCategory = cat;
-
-  popup1.style.display = "none";
-
-  if (editingMode) {
-    inputUser.value = editingMarker._data.author;
-    inputDesc.value = editingMarker._data.description;
-  } else {
-    inputUser.value = "";
-    inputDesc.value = "";
-  }
-
-  popup2.style.display = "block";
-});
-
-document.getElementById("cancel-details").onclick = () => {
-  popup2.style.display = "none";
-  editingMode = false;
-};
-
-document.getElementById("validate-details").onclick = async () => {
-  const user = inputUser.value.trim();
-  const desc = inputDesc.value.trim();
-  if (!user || !desc) return alert("Veuillez remplir votre nom et une description.");
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("fr-FR", {
-    year: "numeric", month: "long", day: "numeric"
-  });
-
-  if (editingMode) {
-    const updated = {
-      id: editingMarker._id,
-      lat: editingMarker._data.lat,
-      lng: editingMarker._data.lng,
-      name: editingMarker._data.name,
-      address: editingMarker._data.address,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr
-    };
-
-    editingMarker.remove();
-
-    createMarker(
-      updated.lat,
-      updated.lng,
-      updated.name,
-      updated.address,
-      updated.author,
-      updated.description,
-      updated.category,
-      updated.date,
-      updated.id
-    );
-
-    await updateMarkerToAPI(updated);
-
-    editingMode = false;
-
-  } else {
-    const newId = Date.now();
-
-    const newMarker = {
-      id: newId,
-      lat: pendingLat,
-      lng: pendingLng,
-      name: pendingName,
-      address: pendingAddress,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr
-    };
-
-    createMarker(
-      newMarker.lat,
-      newMarker.lng,
-      newMarker.name,
-      newMarker.address,
-      newMarker.author,
-      newMarker.description,
-      newMarker.category,
-      newMarker.date,
-      newMarker.id
-    );
-
-    await saveMarkerToAPI(newMarker);
-  }
-
-  popup2.style.display = "none";
-  console.log("VALIDATION OK");
-
-  resultsBox.style.display = "none";
-  input.value = "";
-};
-
-/* -------------------- CRÉATION MARQUEUR -------------------- */
-function createMarker(lat, lng, name, address, author, description, category, date, id = null) {
-
-  // Convertit les virgules en points
-  lat = parseFloat(lat.toString().replace(",", "."));
-  lng = parseFloat(lng.toString().replace(",", "."));
-
-  // Ignore les coordonnées invalides
-  if (isNaN(lat) || isNaN(lng)) {
-    console.error("Coordonnées invalides :", lat, lng);
-    return;
-  }
-
-  const emoji = categoryEmojis[category];
-
-  const popupHTML = `
-    <b>${name}</b><br>
-    ${address}<br><br>
-
-    <b>Ajouté par :</b> ${author}<br>
-    <b>Description :</b><br>${description}<br><br>
-
-    <b>Itinéraire :</b><br>
-    <a href="https://www.google.com/maps?q=${lat},${lng}"
-       target="_blank"
-       style="color:#1a73e8; text-decoration:underline;">
-       Ouvrir dans Google Maps
-    </a><br><br>
-
-    <span style="color: grey; font-size: 12px;">
-      Créé le ${date}
-    </span>
-
-    <div class="edit-btn" onclick="editMarker(this)">Modifier</div>
-  `;
-
-  const icon = L.divIcon({
-    className: "emoji-marker",
-    html: emoji,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14]
-  });
-
-  const marker = L.marker([lat, lng], { icon })
-    .addTo(categories[category])
-    .bindPopup(popupHTML);
-
-  marker._data = { lat, lng, name, address, author, description, category, date };
-  marker._id = id;
-
-  marker.on("popupopen", () => {
-    window.currentMarker = marker;
-  });
-
-  return marker;
-}
-
-/* -------------------- MODIFICATION -------------------- */
-window.editMarker = function(btn) {
-  editingMode = true;
-
-  const marker = window.currentMarker;
-  editingMarker = marker;
-
-  pendingLat = marker._data.lat;
-  pendingLng = marker._data.lng;
-  pendingName = marker._data.name;
-  pendingAddress = marker._data.address;
-
-  openCategoryPopup();
-};
-
-/* -------------------- SYNC LARGEURS -------------------- */
-function syncSearchWidth() {
-  const title = document.getElementById("overlay-titre");
-  const search = document.getElementById("search-input");
-  if (title && search) {
-    search.style.width = title.offsetWidth + "px";
-  }
-}
-
-window.onload = () => {
-  syncSearchWidth();
-  loadMarkersFromAPI();
-};
-
-window.onresize = syncSearchWidth;
-</script>
-
-</body>
-</html>
+document.addEvent
