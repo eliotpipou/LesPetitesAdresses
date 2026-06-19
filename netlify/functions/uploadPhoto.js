@@ -1,21 +1,15 @@
-const fetch = require("node-fetch");
-const FormData = require("form-data");
-
 exports.handler = async (event) => {
   try {
-    const form = new FormData();
+    const boundary = event.headers["content-type"].split("boundary=")[1];
+    const bodyBuffer = Buffer.from(event.body, "base64");
 
-    const contentType = event.headers["content-type"];
-    const body = Buffer.from(event.body, "base64");
-
-    form.append("photo", body, {
-      filename: "photo.jpg",
-      contentType
-    });
-
+    // Envoi direct du body multipart à Apps Script
     const response = await fetch("https://script.google.com/macros/s/AKfycbxaB90SI6JPYHDlEd2D4uj4mSKVjyBGb3ATRljoU0fyHCXMTO29zytU8eNdYAII8N3N/exec", {
       method: "POST",
-      body: form
+      headers: {
+        "Content-Type": `multipart/form-data; boundary=${boundary}`
+      },
+      body: bodyBuffer
     });
 
     const data = await response.json();
