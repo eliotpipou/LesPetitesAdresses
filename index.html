@@ -9,13 +9,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
-    /* --- STYLES GÉNÉRAUX --- */
     #map { height: 100vh; width: 100vw; }
-
-    body, input, textarea, button {
-      font-family: "Akkurat LL", sans-serif;
-      margin: 0;
-    }
+    body, input, textarea, button { font-family: "Akkurat LL", sans-serif; margin: 0; }
 
     /* --- TITRE --- */
     #overlay-titre {
@@ -175,29 +170,31 @@
       cursor: pointer;
     }
 
-    /* --- RESPONSIVE --- */
-    @media (max-width: 768px) {
-      #overlay-titre {
-        font-size: 18px;
-        padding: 6px 16px;
-      }
-      .custom-button {
-        height: 38px;
-        font-size: 15px;
-        padding: 0 12px;
-      }
-      #search-input {
-        width: 85%;
-        min-width: unset;
-      }
-      #search-results {
-        width: 85%;
-        min-width: unset;
-      }
-      .leaflet-popup-content {
-        font-size: 14px;
-        max-width: 220px !important;
-      }
+    /* --- CROIX SUR LA PHOTO --- */
+    .photo-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    #photo-preview {
+      width: 100%;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    #remove-photo-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.65);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      font-size: 14px;
+      z-index: 10;
     }
   </style>
 </head>
@@ -216,63 +213,59 @@
   align-items: center;
   z-index: 9999;
 ">
+  <div style="
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.75);
+    padding: 18px 28px;
+    border-radius: 6px;
+    font-size: 22px;
+    font-weight: 300;
+    color: #99003d;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  ">
+    <img src="logoPP@2x.png" alt="Logo" style="width: 90px; margin-bottom: 10px;">
+    <span>Nos Petites Adresses</span>
+  </div>
 
-<div style="
-  position: absolute;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255,255,255,0.75);
-  padding: 18px 28px;
-  border-radius: 6px;
-  font-size: 22px;
-  font-weight: 300;
-  color: #99003d;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-">
+  <h2 style="color:#99003d; margin-bottom:20px; margin-top:140px;">
+    Accès protégé
+  </h2>
 
-  <img src="logoPP@2x.png" alt="Logo" style="width: 90px; margin-bottom: 10px;">
-  <span>Nos Petites Adresses</span>
+  <input id="access-code" type="password" placeholder="Entrez le code" style="
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+    width: 200px;
+    text-align: center;
+  ">
 
-</div>
+  <label style="margin-bottom: 12px; font-size: 14px; color:#99003d;">
+    <input type="checkbox" id="remember-toggle" style="margin-right:6px;">
+    Se souvenir de moi
+  </label>
 
-<h2 style="color:#99003d; margin-bottom:20px; margin-top:140px;">
-  Accès protégé
-</h2>
+  <button onclick="checkCode()" style="
+    padding: 10px 16px;
+    background:#99003d;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+  ">Valider</button>
 
-<input id="access-code" type="password" placeholder="Entrez le code" style="
-  padding: 10px 14px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-bottom: 12px;
-  width: 200px;
-  text-align: center;
-">
-
-<label style="margin-bottom: 12px; font-size: 14px; color:#99003d;">
-  <input type="checkbox" id="remember-toggle" style="margin-right:6px;">
-  Se souvenir de moi
-</label>
-
-<button onclick="checkCode()" style="
-  padding: 10px 16px;
-  background:#99003d;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-">Valider</button>
-
-<p id="error-msg" style="color:red; margin-top:10px; display:none;">
-  Code incorrect
-</p>
-
+  <p id="error-msg" style="color:red; margin-top:10px; display:none;">
+    Code incorrect
+  </p>
 </div>
 
 <!-- -------------------- UI PRINCIPALE -------------------- -->
@@ -311,12 +304,10 @@
 
   <input type="file" id="photo-input" accept="image/*" style="display:none">
 
-  <img id="photo-preview" style="
-    display:none;
-    width: 100%;
-    margin-top: 10px;
-    border-radius: 6px;
-  ">
+  <div class="photo-wrapper">
+    <img id="photo-preview">
+    <span id="remove-photo-btn">✕</span>
+  </div>
 
   <button id="validate-details">Valider</button>
   <button class="cancel-btn" id="cancel-details">Annuler</button>
@@ -339,11 +330,10 @@ function checkCode() {
   }
 }
 
-/* -------------------- UPLOAD PHOTO → GOOGLE DRIVE -------------------- */
+/* -------------------- UPLOAD PHOTO → NETLIFY uploadPhoto -------------------- */
 let uploadedPhotoURL = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-
   document.getElementById("add-photo-btn").onclick = () => {
     document.getElementById("photo-input").click();
   };
@@ -353,55 +343,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!file) return;
 
     const preview = document.getElementById("photo-preview");
+    const removeBtn = document.getElementById("remove-photo-btn");
+
     preview.src = URL.createObjectURL(file);
     preview.style.display = "block";
+    removeBtn.style.display = "block";
 
     const formData = new FormData();
     formData.append("photo", file);
 
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbyShEuhrLizA8xclJXQIES5bRYPaTghgs5QZsXy67QWt-zdAjU3KPIFmmB0wogf-TrF/exec",
-      { method: "POST", body: formData }
-    );
+    const response = await fetch("/.netlify/functions/uploadPhoto", {
+      method: "POST",
+      body: formData
+    });
 
     const data = await response.json();
-    console.log("Réponse Apps Script :", data);
+    console.log("Réponse uploadPhoto :", data);
 
-    uploadedPhotoURL = data.url;
+    uploadedPhotoURL = data.url || "";
   };
 });
 
-// Ajouter une croix pour supprimer la photo
-const preview = document.getElementById("photo-preview");
-
-preview.insertAdjacentHTML("afterend", `
-  <span id="remove-photo-btn" style="
-    position:absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.6);
-    color:white;
-    padding:4px 8px;
-    border-radius:50%;
-    cursor:pointer;
-    display:none;
-    font-size:14px;
-  ">✕</span>
-`);
-
-const removeBtn = document.getElementById("remove-photo-btn");
-
-// Afficher la croix quand une photo est ajoutée
-document.getElementById("photo-input").addEventListener("change", () => {
-  removeBtn.style.display = "block";
-});
-
-// Supprimer la photo
-removeBtn.onclick = () => {
+/* -------------------- SUPPRESSION PHOTO -------------------- */
+document.getElementById("remove-photo-btn").onclick = () => {
   uploadedPhotoURL = "";
-  preview.src = "";
-  preview.style.display = "none";
-  removeBtn.style.display = "none";
+  document.getElementById("photo-preview").style.display = "none";
+  document.getElementById("photo-preview").src = "";
+  document.getElementById("remove-photo-btn").style.display = "none";
   document.getElementById("photo-input").value = "";
 };
 
@@ -730,39 +698,39 @@ function createMarker(lat, lng, name, address, author, description, category, da
   const emoji = categoryEmojis[category];
 
   let photoHTML = "";
-if (photo && photo !== "") {
-  photoHTML = `
-    <br>
-    <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
-    <br>
+  if (photo && photo !== "") {
+    photoHTML = `
+      <br>
+      <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
+      <br>
+    `;
+  }
+
+  const popupHTML = `
+    <b>${name}</b><br>
+    ${address}<br><br>
+
+    <b>Ajouté par :</b> ${author}<br>
+    <b>Description :</b><br>${description}<br><br>
+
+    ${photoHTML}
+
+    <b>Itinéraire :</b><br>
+    <a href="https://www.google.com/maps?q=${lat},${lng}"
+       target="_blank"
+       style="color:#1a73e8; text-decoration:underline;">
+       Ouvrir dans Google Maps
+    </a><br><br>
+
+    <span style="color: grey; font-size: 12px;">
+      Créé le ${date}
+    </span>
+
+    <br><br>
+    <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
+      Modifier
+    </span>
   `;
-}
-
-const popupHTML = `
-  <b>${name}</b><br>
-  ${address}<br><br>
-
-  <b>Ajouté par :</b> ${author}<br>
-  <b>Description :</b><br>${description}<br><br>
-
-  ${photoHTML}
-
-  <b>Itinéraire :</b><br>
-  <a href="https://www.google.com/maps?q=${lat},${lng}"
-     target="_blank"
-     style="color:#1a73e8; text-decoration:underline;">
-     Ouvrir dans Google Maps
-  </a><br><br>
-
-  <span style="color: grey; font-size: 12px;">
-    Créé le ${date}
-  </span>
-
-  <br><br>
-  <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
-    Modifier
-  </span>
-`;
 
   const marker = L.marker([lat, lng], {
     icon: L.divIcon({
@@ -776,7 +744,6 @@ const popupHTML = `
 
   marker.bindPopup(popupHTML);
 
-  // 🔥 Gestion du bouton Modifier
   marker.on("popupopen", () => {
     const btn = document.querySelector(".edit-btn");
     if (!btn) return;
@@ -795,12 +762,9 @@ const popupHTML = `
   });
 }
 
-
 /* -------------------- CHARGEMENT INITIAL -------------------- */
 loadMarkersFromAPI();
 </script>
-
-<!-- -------------------- FIN DU SCRIPT + FERMETURES -------------------- -->
 
 </body>
 </html>
