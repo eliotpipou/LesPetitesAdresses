@@ -328,7 +328,7 @@
 
 <script>
 /* -------------------- MOT DE PASSE -------------------- */
-const PASSWORD = "paris2024";
+const PASSWORD = "6969";
 
 function checkCode() {
   const input = document.getElementById("access-code").value;
@@ -365,6 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     const data = await response.json();
+    console.log("Réponse Apps Script :", data);
+
     uploadedPhotoURL = data.url;
   };
 });
