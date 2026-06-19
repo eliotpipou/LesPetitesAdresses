@@ -721,6 +721,11 @@ function createMarker(lat, lng, name, address, author, description, category, da
     <span style="color: grey; font-size: 12px;">
       Créé le ${date}
     </span>
+
+    <br><br>
+    <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
+      Modifier
+    </span>
   `;
 
   const marker = L.marker([lat, lng], {
@@ -734,7 +739,26 @@ function createMarker(lat, lng, name, address, author, description, category, da
   marker._data = { lat, lng, name, address, author, description, category, date, photo };
 
   marker.bindPopup(popupHTML);
+
+  // 🔥 Gestion du bouton Modifier
+  marker.on("popupopen", () => {
+    const btn = document.querySelector(".edit-btn");
+    if (!btn) return;
+
+    btn.onclick = () => {
+      editingMode = true;
+      editingMarker = marker;
+
+      pendingCategory = category;
+
+      inputUser.value = author;
+      inputDesc.value = description;
+
+      popup2.style.display = "block";
+    };
+  });
 }
+
 
 /* -------------------- CHARGEMENT INITIAL -------------------- */
 loadMarkersFromAPI();
