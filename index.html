@@ -109,66 +109,76 @@
     }
     .result-item:hover { background: #f0f0f0; }
 
-    /* --- POPUPS --- */
-    #category-popup,
-    #details-popup {
-      position: fixed;
-      top: 65%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 2000;
-      display: none;
-      width: 300px;
-      text-align: center;
-    }
+/* --- POPUPS --- */
+#category-popup,
+#details-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 2000;
+  display: none;
+  width: 300px;
+  text-align: center;
+}
 
-    .category-btn {
-      padding: 10px;
-      margin: 6px 0;
-      width: 100%;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      background: #fafafa;
-      font-size: 15px;
-    }
-    .category-btn:hover { background: #eaeaea; }
+/* --- POSITION SPÉCIALE SMARTPHONE POUR LA POPUP CATÉGORIES --- */
+@media (max-width: 768px) {
+  #category-popup {
+    top: 70%;                 /* ← EXACTEMENT CE QUE TU AS DEMANDÉ */
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
 
-    #details-popup input,
-    #details-popup textarea,
-    #details-popup button {
-      width: 100%;
-      box-sizing: border-box;
-      font-family: "Akkurat LL", sans-serif;
-    }
+.category-btn {
+  padding: 10px;
+  margin: 6px 0;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #fafafa;
+  font-size: 15px;
+}
+.category-btn:hover { background: #eaeaea; }
 
-    #details-popup input,
-    #details-popup textarea {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
+#details-popup input,
+#details-popup textarea,
+#details-popup button {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "Akkurat LL", sans-serif;
+}
 
-    #details-popup button {
-      margin-top: 12px;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background: #99003d;
-      color: white;
-      font-size: 15px;
-    }
+#details-popup input,
+#details-popup textarea {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
 
-    #details-popup .cancel-btn {
-      background: #ccc;
-      color: black;
-    }
+#details-popup button {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #99003d;
+  color: white;
+  font-size: 15px;
+}
+
+#details-popup .cancel-btn {
+  background: #ccc;
+  color: black;
+}
 
     .emoji-marker {
       font-size: 28px;
@@ -757,15 +767,16 @@ function createMarker(lat, lng, name, address, author, description, category, da
       editingMode = true;
       editingMarker = marker;
 
-      pendingCategory = category;
+      pendingLat = marker._data.lat;
+      pendingLng = marker._data.lng;
+      pendingName = marker._data.name;
+      pendingAddress = marker._data.address;
 
-      inputUser.value = author;
-      inputDesc.value = description;
-
-      popup2.style.display = "block";
+      popup1.style.display = "block";   // ✔ permet de rechoisir la catégorie
     };
   });
 }
+
 
 /* -------------------- CHARGEMENT INITIAL -------------------- */
 loadMarkersFromAPI();
