@@ -33,7 +33,7 @@
     }
     #overlay-titre:hover { opacity: 1; }
 
-    /* --- BOUTONS FLOTTANTS --- */
+    /* --- LOCALISATION --- */
     .custom-button {
       position: absolute;
       left: 18px;
@@ -55,8 +55,7 @@
     }
     .custom-button:hover { opacity: 1; }
 
-    #layers-button { top: 110px; }
-    #locate-button { top: 155px; }
+    #locate-button { top: 110px; }
 
     /* --- RECHERCHE --- */
     #search-input {
@@ -98,9 +97,7 @@
     }
 
     @media (max-width: 768px) {
-      #search-results {
-        top: 130px;
-      }
+      #search-results { top: 130px; }
     }
 
     .result-item {
@@ -126,11 +123,17 @@
       text-align: center;
     }
 
+    /* VERSION MOBILE — FIXE LE PROBLÈME DE SUPERPOSITION */
     @media (max-width: 768px) {
       #category-popup {
-        top: 70%;
-        left: 50%;
-        transform: translate(-50%, -30%);
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        transform: none;
+        border-radius: 12px 12px 0 0;
+        padding: 20px;
       }
     }
 
@@ -186,10 +189,7 @@
     }
 
     /* --- PHOTO --- */
-    .photo-wrapper {
-      position: relative;
-      width: 100%;
-    }
+    .photo-wrapper { position: relative; width: 100%; }
 
     #photo-preview {
       width: 100%;
@@ -216,75 +216,8 @@
 
 <body>
 
-<div id="lock-screen" style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-">
-  <div style="
-    position: absolute;
-    top: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,255,255,0.75);
-    padding: 18px 28px;
-    border-radius: 6px;
-    font-size: 22px;
-    font-weight: 300;
-    color: #99003d;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  ">
-    <img src="logoPP@2x.png" alt="Logo" style="width: 90px; margin-bottom: 10px;">
-    <span>Nos Petites Adresses</span>
-  </div>
-
-  <h2 style="color:#99003d; margin-bottom:20px; margin-top:140px;">
-    Accès protégé
-  </h2>
-
-  <input id="access-code" type="password" placeholder="Entrez le code" style="
-    padding: 10px 14px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-bottom: 12px;
-    width: 200px;
-    text-align: center;
-  ">
-
-  <label style="margin-bottom: 12px; font-size: 14px; color:#99003d;">
-    <input type="checkbox" id="remember-toggle" style="margin-right:6px;">
-    Se souvenir de moi
-  </label>
-
-  <button id="validate-code-btn" style="
-    padding: 10px 16px;
-    background:#99003d;
-    color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:16px;
-  ">Valider</button>
-
-  <p id="error-msg" style="color:red; margin-top:10px; display:none;">
-    Code incorrect
-  </p>
-</div>
-
 <div id="overlay-titre">Nos Petites Adresses</div>
 
-<div id="layers-button" class="custom-button">🗂️ <span>Catégories</span></div>
 <div id="locate-button" class="custom-button">📍 <span>Me localiser</span></div>
 
 <input id="search-input" type="text" placeholder="Rechercher / Ajouter un lieu">
@@ -301,18 +234,7 @@
   <input id="input-name" type="text" placeholder="Votre nom (obligatoire)">
   <textarea id="input-desc" rows="3" placeholder="Description du lieu (obligatoire)"></textarea>
 
-  <button id="add-photo-btn" style="
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #fafafa;
-    cursor: pointer;
-    color: #000;
-  ">
-    Ajouter une photo (facultatif)
-  </button>
-
+  <button id="add-photo-btn">Ajouter une photo (facultatif)</button>
   <input type="file" id="photo-input" accept="image/*" style="display:none">
 
   <div class="photo-wrapper">
@@ -328,53 +250,36 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-/* -------------------- MOT DE PASSE -------------------- */
-const PASSWORD = "696969";
-
-function checkCode() {
-  const input = document.getElementById("access-code").value;
-  if (input === PASSWORD) {
-    document.getElementById("lock-screen").style.display = "none";
-  } else {
-    document.getElementById("error-msg").style.display = "block";
-  }
-}
-
-document.getElementById("validate-code-btn").addEventListener("click", checkCode);
-
-/* -------------------- UPLOAD PHOTO → NETLIFY -------------------- */
+/* -------------------- UPLOAD PHOTO -------------------- */
 let uploadedPhotoURL = "";
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("add-photo-btn").onclick = () => {
-    document.getElementById("photo-input").click();
-  };
+document.getElementById("add-photo-btn").onclick = () => {
+  document.getElementById("photo-input").click();
+};
 
-  document.getElementById("photo-input").onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+document.getElementById("photo-input").onchange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-    const preview = document.getElementById("photo-preview");
-    const removeBtn = document.getElementById("remove-photo-btn");
+  const preview = document.getElementById("photo-preview");
+  const removeBtn = document.getElementById("remove-photo-btn");
 
-    preview.src = URL.createObjectURL(file);
-    preview.style.display = "block";
-    removeBtn.style.display = "block";
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+  removeBtn.style.display = "block";
 
-    const formData = new FormData();
-    formData.append("photo", file);
+  const formData = new FormData();
+  formData.append("photo", file);
 
-    const response = await fetch("/.netlify/functions/uploadPhoto", {
-      method: "POST",
-      body: formData
-    });
+  const response = await fetch("/.netlify/functions/uploadPhoto", {
+    method: "POST",
+    body: formData
+  });
 
-    const data = await response.json();
-    uploadedPhotoURL = data.url || "";
-  };
-});
+  const data = await response.json();
+  uploadedPhotoURL = data.url || "";
+};
 
-/* -------------------- SUPPRESSION PHOTO -------------------- */
 document.getElementById("remove-photo-btn").onclick = () => {
   uploadedPhotoURL = "";
   document.getElementById("photo-preview").style.display = "none";
@@ -383,34 +288,29 @@ document.getElementById("remove-photo-btn").onclick = () => {
   document.getElementById("photo-input").value = "";
 };
 
-/* -------------------- API GOOGLE SHEETS -------------------- */
+/* -------------------- API -------------------- */
 const API_URL = "/.netlify/functions/sheets";
 
 async function loadMarkersFromAPI() {
-  try {
-    const response = await fetch(API_URL);
-    const data = await response.json();
+  const response = await fetch(API_URL);
+  const data = await response.json();
 
-    data.forEach(item => {
-      if (!item.lat || !item.lng) return;
+  data.forEach(item => {
+    if (!item.lat || !item.lng) return;
 
-      createMarker(
-        item.lat,
-        item.lng,
-        item.name,
-        item.address,
-        item.author,
-        item.description,
-        item.category,
-        item.date,
-        item.id,
-        item.photo
-      );
-    });
-
-  } catch (err) {
-    console.error("Erreur API :", err);
-  }
+    createMarker(
+      item.lat,
+      item.lng,
+      item.name,
+      item.address,
+      item.author,
+      item.description,
+      item.category,
+      item.date,
+      item.id,
+      item.photo
+    );
+  });
 }
 
 async function saveMarkerToAPI(markerData) {
@@ -620,166 +520,4 @@ document.getElementById("validate-details").onclick = async () => {
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("fr-FR", {
-    year: "numeric", month: "long", day: "numeric"
-  });
-
-  if (editingMode) {
-    const updated = {
-      id: editingMarker._id,
-      lat: editingMarker._data.lat,
-      lng: editingMarker._data.lng,
-      name: editingMarker._data.name,
-      address: editingMarker._data.address,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr,
-      photo: uploadedPhotoURL
-    };
-
-    editingMarker.remove();
-
-    createMarker(
-      updated.lat,
-      updated.lng,
-      updated.name,
-      updated.address,
-      updated.author,
-      updated.description,
-      updated.category,
-      updated.date,
-      updated.id,
-      updated.photo
-    );
-
-    await updateMarkerToAPI(updated);
-
-    editingMode = false;
-
-  } else {
-    const newId = Date.now();
-
-    const newMarker = {
-      id: newId,
-      lat: pendingLat,
-      lng: pendingLng,
-      name: pendingName,
-      address: pendingAddress,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr,
-      photo: uploadedPhotoURL
-    };
-
-    createMarker(
-      newMarker.lat,
-      newMarker.lng,
-      newMarker.name,
-      newMarker.address,
-      newMarker.author,
-      newMarker.description,
-      newMarker.category,
-      newMarker.date,
-      newMarker.id,
-      newMarker.photo
-    );
-
-    await saveMarkerToAPI(newMarker);
-  }
-
-  popup2.style.display = "none";
-  resultsBox.style.display = "none";
-  input.value = "";
-};
-
-/* -------------------- CRÉATION MARQUEUR -------------------- */
-function createMarker(lat, lng, name, address, author, description, category, date, id = null, photo = null) {
-
-  lat = parseFloat(lat.toString().replace(",", "."));
-  lng = parseFloat(lng.toString().replace(",", "."));
-
-  if (isNaN(lat) || isNaN(lng)) {
-    console.error("Coordonnées invalides :", lat, lng);
-    return;
-  }
-
-  const emoji = categoryEmojis[category];
-
-  let photoHTML = "";
-  if (photo && photo !== "") {
-    photoHTML = `
-      <br>
-      <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
-      <br>
-    `;
-  }
-
-  const popupHTML = `
-    <b>${name}</b><br>
-    ${address}<br><br>
-
-    <b>Ajouté par :</b> ${author}<br>
-    <b>Description :</b><br>${description}<br><br>
-
-    ${photoHTML}
-
-    <b>Itinéraire :</b><br>
-    <a href="https://www.google.com/maps?q=${lat},${lng}"
-       target="_blank"
-       style="color:#1a73e8; text-decoration:underline;">
-       Ouvrir dans Google Maps
-    </a><br><br>
-
-    <span style="color: grey; font-size: 12px;">
-      Créé le ${date}
-    </span>
-
-    <br><br>
-    <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
-      Modifier
-    </span>
-  `;
-
-  const marker = L.marker([lat, lng], {
-    icon: L.divIcon({
-      className: "emoji-marker",
-      html: emoji
-    })
-  }).addTo(categories[category]);
-
-  marker._id = id;
-  marker._data = { lat, lng, name, address, author, description, category, date, photo };
-
-  marker.bindPopup(popupHTML);
-
-  marker.on("popupopen", () => {
-    const btn = document.querySelector(".edit-btn");
-    if (!btn) return;
-
-    btn.onclick = () => {
-      editingMode = true;
-      editingMarker = marker;
-
-      pendingLat = marker._data.lat;
-      pendingLng = marker._data.lng;
-      pendingName = marker._data.name;
-      pendingAddress = marker._data.address;
-
-      popup1.style.display = "block";
-    };
-  });
-}
-
-/* -------------------- BOUTON CATÉGORIES (GAUCHE ÉCRAN) -------------------- */
-document.getElementById("layers-button").onclick = () => {
-  openCategoryPopup();
-};
-
-/* -------------------- CHARGEMENT INITIAL -------------------- */
-loadMarkersFromAPI();
-
-</script>
-
-</body>
-</html>
+    year: "numeric", month: "long
