@@ -255,7 +255,7 @@
 
 <script>
 /* -------------------- ACCÈS -------------------- */
-const PASSWORD = "6969";
+const PASSWORD = "696969";
 
 document.getElementById("validate-code-btn").onclick = () => {
   const input = document.getElementById("access-code").value;
