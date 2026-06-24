@@ -109,76 +109,75 @@
     }
     .result-item:hover { background: #f0f0f0; }
 
-/* --- POPUPS --- */
-#category-popup,
-#details-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 2000;
-  display: none;
-  width: 300px;
-  text-align: center;
-}
+    /* --- POPUPS --- */
+    #category-popup,
+    #details-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 2000;
+      display: none;
+      width: 300px;
+      text-align: center;
+    }
 
-/* --- POSITION SPÉCIALE SMARTPHONE POUR LA POPUP CATÉGORIES --- */
-@media (max-width: 768px) {
-  #category-popup {
-    top: 70%;                 /* ← EXACTEMENT CE QUE TU AS DEMANDÉ */
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-}
+    @media (max-width: 768px) {
+      #category-popup {
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -30%);
+      }
+    }
 
-.category-btn {
-  padding: 10px;
-  margin: 6px 0;
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  background: #fafafa;
-  font-size: 15px;
-}
-.category-btn:hover { background: #eaeaea; }
+    .category-btn {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #fafafa;
+      font-size: 15px;
+    }
+    .category-btn:hover { background: #eaeaea; }
 
-#details-popup input,
-#details-popup textarea,
-#details-popup button {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: "Akkurat LL", sans-serif;
-}
+    #details-popup input,
+    #details-popup textarea,
+    #details-popup button {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: "Akkurat LL", sans-serif;
+    }
 
-#details-popup input,
-#details-popup textarea {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-}
+    #details-popup input,
+    #details-popup textarea {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
 
-#details-popup button {
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: #99003d;
-  color: white;
-  font-size: 15px;
-}
+    #details-popup button {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #99003d;
+      color: white;
+      font-size: 15px;
+    }
 
-#details-popup .cancel-btn {
-  background: #ccc;
-  color: black;
-}
+    #details-popup .cancel-btn {
+      background: #ccc;
+      color: black;
+    }
 
     .emoji-marker {
       font-size: 28px;
@@ -217,7 +216,6 @@
 
 <body>
 
-<!-- -------------------- ÉCRAN DE VERROUILLAGE -------------------- -->
 <div id="lock-screen" style="
   position: fixed;
   top: 0; left: 0;
@@ -284,7 +282,6 @@
   </p>
 </div>
 
-<!-- -------------------- UI PRINCIPALE -------------------- -->
 <div id="overlay-titre">Nos Petites Adresses</div>
 
 <div id="layers-button" class="custom-button">🗂️ <span>Catégories</span></div>
@@ -293,13 +290,11 @@
 <input id="search-input" type="text" placeholder="Rechercher / Ajouter un lieu">
 <div id="search-results"></div>
 
-<!-- POPUP CATÉGORIE -->
 <div id="category-popup">
   <h3>Choisir une catégorie</h3>
   <div id="category-buttons"></div>
 </div>
 
-<!-- POPUP DÉTAILS -->
 <div id="details-popup">
   <h3>Détails du lieu</h3>
 
@@ -332,10 +327,9 @@
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<!-- -------------------- SCRIPT PRINCIPAL -------------------- -->
 <script>
 /* -------------------- MOT DE PASSE -------------------- */
-const PASSWORD = "6969";
+const PASSWORD = "696969";
 
 function checkCode() {
   const input = document.getElementById("access-code").value;
@@ -772,11 +766,15 @@ function createMarker(lat, lng, name, address, author, description, category, da
       pendingName = marker._data.name;
       pendingAddress = marker._data.address;
 
-      popup1.style.display = "block";   // ✔ permet de rechoisir la catégorie
+      popup1.style.display = "block";
     };
   });
 }
 
+/* -------------------- BOUTON CATÉGORIES (GAUCHE ÉCRAN) -------------------- */
+document.getElementById("layers-button").onclick = () => {
+  openCategoryPopup();
+};
 
 /* -------------------- CHARGEMENT INITIAL -------------------- */
 loadMarkersFromAPI();
@@ -785,4 +783,3 @@ loadMarkersFromAPI();
 
 </body>
 </html>
-
