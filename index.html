@@ -84,7 +84,7 @@
 
     #search-results {
       position: absolute;
-      top: 110px;
+      top: 115px; /* ← DESCENDU POUR MOBILE */
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -95,6 +95,12 @@
       max-height: 200px;
       overflow-y: auto;
       min-width: 260px;
+    }
+
+    @media (max-width: 768px) {
+      #search-results {
+        top: 130px; /* ← encore plus bas sur mobile */
+      }
     }
 
     .result-item {
@@ -170,7 +176,7 @@
       cursor: pointer;
     }
 
-    /* --- CROIX SUR LA PHOTO --- */
+    /* --- PHOTO --- */
     .photo-wrapper {
       position: relative;
       width: 100%;
@@ -329,7 +335,7 @@ function checkCode() {
     document.getElementById("error-msg").style.display = "block";
   }
 }
-
+<script>
 /* -------------------- UPLOAD PHOTO → NETLIFY uploadPhoto -------------------- */
 let uploadedPhotoURL = "";
 
@@ -563,7 +569,7 @@ resultsBox.addEventListener("click", e => {
 
   openCategoryPopup();
 });
-
+<script>
 function openCategoryPopup() {
   buttons1.innerHTML = Object.keys(categories).map(cat => `
     <button class="category-btn" data-cat="${cat}">
