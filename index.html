@@ -84,7 +84,7 @@
 
     #search-results {
       position: absolute;
-      top: 115px; /* ← DESCENDU POUR MOBILE */
+      top: 115px;
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -99,7 +99,7 @@
 
     @media (max-width: 768px) {
       #search-results {
-        top: 130px; /* ← encore plus bas sur mobile */
+        top: 130px;
       }
     }
 
@@ -323,6 +323,7 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+<!-- -------------------- SCRIPT PRINCIPAL -------------------- -->
 <script>
 /* -------------------- MOT DE PASSE -------------------- */
 const PASSWORD = "696969";
@@ -335,8 +336,8 @@ function checkCode() {
     document.getElementById("error-msg").style.display = "block";
   }
 }
-<script>
-/* -------------------- UPLOAD PHOTO → NETLIFY uploadPhoto -------------------- */
+
+/* -------------------- UPLOAD PHOTO → NETLIFY -------------------- */
 let uploadedPhotoURL = "";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -364,8 +365,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const data = await response.json();
-    console.log("Réponse uploadPhoto :", data);
-
     uploadedPhotoURL = data.url || "";
   };
 });
@@ -514,263 +513,3 @@ function runSearch(query) {
       address: [f.properties.housenumber, f.properties.street, f.properties.city]
         .filter(Boolean).join(", "),
       lat: f.geometry.coordinates[1],
-      lng: f.geometry.coordinates[0]
-    }));
-
-    const nominatimResults = nominatimData.map(n => ({
-      name: n.display_name.split(",")[0],
-      address: n.display_name,
-      lat: parseFloat(n.lat),
-      lng: parseFloat(n.lon)
-    }));
-
-    const allResults = [...photonResults, ...nominatimResults];
-
-    if (!allResults.length) return resultsBox.style.display = "none";
-
-    resultsBox.innerHTML = allResults.map(r => `
-      <div class="result-item"
-           data-lat="${r.lat}"
-           data-lng="${r.lng}"
-           data-name="${r.name}"
-           data-address="${r.address}">
-        ${r.name} — ${r.address}
-      </div>
-    `).join("");
-
-    resultsBox.style.display = "block";
-  });
-}
-
-document.addEventListener("click", e => {
-  if (!resultsBox.contains(e.target) && e.target !== input)
-    resultsBox.style.display = "none";
-});
-
-/* -------------------- POPUP CATÉGORIE -------------------- */
-const popup1 = document.getElementById("category-popup");
-const buttons1 = document.getElementById("category-buttons");
-
-let pendingLat = null, pendingLng = null, pendingName = null, pendingAddress = null;
-let pendingCategory = null;
-let editingMarker = null;
-let editingMode = false;
-
-resultsBox.addEventListener("click", e => {
-  const item = e.target.closest(".result-item");
-  if (!item) return;
-
-  editingMode = false;
-
-  pendingLat = parseFloat(item.dataset.lat);
-  pendingLng = parseFloat(item.dataset.lng);
-  pendingName = item.dataset.name;
-  pendingAddress = item.dataset.address;
-
-  openCategoryPopup();
-});
-<script>
-function openCategoryPopup() {
-  buttons1.innerHTML = Object.keys(categories).map(cat => `
-    <button class="category-btn" data-cat="${cat}">
-      ${categoryEmojis[cat]} ${categoryLabels[cat]}
-    </button>
-  `).join("");
-
-  popup1.style.display = "block";
-}
-
-/* -------------------- POPUP DÉTAILS -------------------- */
-const popup2 = document.getElementById("details-popup");
-const inputUser = document.getElementById("input-name");
-const inputDesc = document.getElementById("input-desc");
-
-buttons1.addEventListener("click", evt => {
-  const cat = evt.target.dataset.cat;
-  if (!cat) return;
-
-  pendingCategory = cat;
-
-  popup1.style.display = "none";
-
-  if (editingMode) {
-    inputUser.value = editingMarker._data.author;
-    inputDesc.value = editingMarker._data.description;
-  } else {
-    inputUser.value = "";
-    inputDesc.value = "";
-  }
-
-  popup2.style.display = "block";
-});
-
-document.getElementById("cancel-details").onclick = () => {
-  popup2.style.display = "none";
-  editingMode = false;
-};
-
-/* -------------------- VALIDATION -------------------- */
-document.getElementById("validate-details").onclick = async () => {
-  const user = inputUser.value.trim();
-  const desc = inputDesc.value.trim();
-  if (!user || !desc) return alert("Veuillez remplir votre nom et une description.");
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("fr-FR", {
-    year: "numeric", month: "long", day: "numeric"
-  });
-
-  if (editingMode) {
-    const updated = {
-      id: editingMarker._id,
-      lat: editingMarker._data.lat,
-      lng: editingMarker._data.lng,
-      name: editingMarker._data.name,
-      address: editingMarker._data.address,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr,
-      photo: uploadedPhotoURL
-    };
-
-    editingMarker.remove();
-
-    createMarker(
-      updated.lat,
-      updated.lng,
-      updated.name,
-      updated.address,
-      updated.author,
-      updated.description,
-      updated.category,
-      updated.date,
-      updated.id,
-      updated.photo
-    );
-
-    await updateMarkerToAPI(updated);
-
-    editingMode = false;
-
-  } else {
-    const newId = Date.now();
-
-    const newMarker = {
-      id: newId,
-      lat: pendingLat,
-      lng: pendingLng,
-      name: pendingName,
-      address: pendingAddress,
-      author: user,
-      description: desc,
-      category: pendingCategory,
-      date: dateStr,
-      photo: uploadedPhotoURL
-    };
-
-    createMarker(
-      newMarker.lat,
-      newMarker.lng,
-      newMarker.name,
-      newMarker.address,
-      newMarker.author,
-      newMarker.description,
-      newMarker.category,
-      newMarker.date,
-      newMarker.id,
-      newMarker.photo
-    );
-
-    await saveMarkerToAPI(newMarker);
-  }
-
-  popup2.style.display = "none";
-  resultsBox.style.display = "none";
-  input.value = "";
-};
-
-/* -------------------- CRÉATION MARQUEUR -------------------- */
-function createMarker(lat, lng, name, address, author, description, category, date, id = null, photo = null) {
-
-  lat = parseFloat(lat.toString().replace(",", "."));
-  lng = parseFloat(lng.toString().replace(",", "."));
-
-  if (isNaN(lat) || isNaN(lng)) {
-    console.error("Coordonnées invalides :", lat, lng);
-    return;
-  }
-
-  const emoji = categoryEmojis[category];
-
-  let photoHTML = "";
-  if (photo && photo !== "") {
-    photoHTML = `
-      <br>
-      <img src="${photo}" style="width:100%; border-radius:6px; margin-top:10px;">
-      <br>
-    `;
-  }
-
-  const popupHTML = `
-    <b>${name}</b><br>
-    ${address}<br><br>
-
-    <b>Ajouté par :</b> ${author}<br>
-    <b>Description :</b><br>${description}<br><br>
-
-    ${photoHTML}
-
-    <b>Itinéraire :</b><br>
-    <a href="https://www.google.com/maps?q=${lat},${lng}"
-       target="_blank"
-       style="color:#1a73e8; text-decoration:underline;">
-       Ouvrir dans Google Maps
-    </a><br><br>
-
-    <span style="color: grey; font-size: 12px;">
-      Créé le ${date}
-    </span>
-
-    <br><br>
-    <span class="edit-btn" data-id="${id}" style="color:#1a73e8; cursor:pointer; font-size:13px;">
-      Modifier
-    </span>
-  `;
-
-  const marker = L.marker([lat, lng], {
-    icon: L.divIcon({
-      className: "emoji-marker",
-      html: emoji
-    })
-  }).addTo(categories[category]);
-
-  marker._id = id;
-  marker._data = { lat, lng, name, address, author, description, category, date, photo };
-
-  marker.bindPopup(popupHTML);
-
-  marker.on("popupopen", () => {
-    const btn = document.querySelector(".edit-btn");
-    if (!btn) return;
-
-    btn.onclick = () => {
-      editingMode = true;
-      editingMarker = marker;
-
-      pendingCategory = category;
-
-      inputUser.value = author;
-      inputDesc.value = description;
-
-      popup2.style.display = "block";
-    };
-  });
-}
-
-/* -------------------- CHARGEMENT INITIAL -------------------- */
-loadMarkersFromAPI();
-</script>
-
-</body>
-</html>
