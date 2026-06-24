@@ -130,7 +130,6 @@
       text-align: center;
     }
 
-    /* VERSION MOBILE — panneau bas */
     @media (max-width: 768px) {
       #category-popup {
         top: auto;
@@ -235,8 +234,6 @@
 
 <!-- PAGE D’ACCÈS -->
 <div id="lock-screen">
-
-  <!-- IMAGE RESTAURÉE -->
   <img src="logoPP@2x.png" id="home-logo">
 
   <h2 style="color:#99003d; margin-bottom:20px;">Accès protégé</h2>
@@ -252,39 +249,7 @@
   <p id="error-msg" style="color:red; margin-top:10px; display:none;">Code incorrect</p>
 </div>
 
-<div id="overlay-titre">Nos Petites Adresses</div>
-
-<div id="locate-button" class="custom-button">📍 <span>Me localiser</span></div>
-
-<input id="search-input" type="text" placeholder="Rechercher / Ajouter un lieu">
-<div id="search-results"></div>
-
-<div id="category-popup">
-  <h3>Choisir une catégorie</h3>
-  <div id="category-buttons"></div>
-</div>
-
-<div id="details-popup">
-  <h3>Détails du lieu</h3>
-
-  <input id="input-name" type="text" placeholder="Votre nom (obligatoire)">
-  <textarea id="input-desc" rows="3" placeholder="Description du lieu (obligatoire)"></textarea>
-
-  <button id="add-photo-btn">Ajouter une photo (facultatif)</button>
-  <input type="file" id="photo-input" accept="image/*" style="display:none">
-
-  <div class="photo-wrapper">
-    <img id="photo-preview">
-    <span id="remove-photo-btn">✕</span>
-  </div>
-
-  <button id="validate-details">Valider</button>
-  <button class="cancel-btn" id="cancel-details">Annuler</button>
-</div>
-
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<div id="overlay-titre">
 <script>
 /* -------------------- ACCÈS -------------------- */
 const PASSWORD = "6969";
@@ -382,7 +347,8 @@ async function updateMarkerToAPI(markerData) {
     body: JSON.stringify(markerData)
   });
 }
-
+</script>
+<script>
 /* -------------------- CARTE -------------------- */
 const map = L.map('map').setView([48.8566, 2.3355], 13);
 
@@ -498,6 +464,8 @@ document.addEventListener("click", e => {
   if (!resultsBox.contains(e.target) && e.target !== input)
     resultsBox.style.display = "none";
 });
+</script>
+<script>
 /* -------------------- POPUP CATÉGORIE -------------------- */
 const popup1 = document.getElementById("category-popup");
 const buttons1 = document.getElementById("category-buttons");
@@ -639,7 +607,8 @@ document.getElementById("validate-details").onclick = async () => {
   resultsBox.style.display = "none";
   input.value = "";
 };
-
+</script>
+<script>
 /* -------------------- CRÉATION MARQUEUR -------------------- */
 function createMarker(lat, lng, name, address, author, description, category, date, id = null, photo = null) {
 
@@ -717,10 +686,10 @@ function createMarker(lat, lng, name, address, author, description, category, da
     };
   });
 }
-
+</script>
+<script>
 /* -------------------- CHARGEMENT INITIAL -------------------- */
 loadMarkersFromAPI();
-
 </script>
 
 </body>
